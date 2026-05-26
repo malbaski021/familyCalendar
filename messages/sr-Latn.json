@@ -1,0 +1,31 @@
+{
+  "app": {
+    "title": "Porodični kalendar",
+    "description": "Zajednički porodični kalendar uz pomoć veštačke inteligencije"
+  },
+  "common": {
+    "loading": "Učitavanje...",
+    "save": "Sačuvaj",
+    "cancel": "Otkaži",
+    "delete": "Obriši",
+    "edit": "Izmeni",
+    "back": "Nazad"
+  },
+  "nav": {
+    "calendar": "Kalendar",
+    "add": "Dodaj",
+    "profile": "Profil",
+    "settings": "Podešavanja"
+  },
+  "home": {
+    "welcome": "Dobrodošli u Porodični kalendar",
+    "subtitle": "Uskladite porodični raspored na jednom zajedničkom mestu."
+  },
+  "auth": {
+    "login": "Prijavi se",
+    "logout": "Odjavi se",
+    "email": "Email",
+    "password": "Lozinka",
+    "username": "Korisničko ime"
+  }
+}

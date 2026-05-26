@@ -1,0 +1,31 @@
+{
+  "app": {
+    "title": "Family Calendar",
+    "description": "A shared family calendar with AI-powered assistance"
+  },
+  "common": {
+    "loading": "Loading...",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "back": "Back"
+  },
+  "nav": {
+    "calendar": "Calendar",
+    "add": "Add",
+    "profile": "Profile",
+    "settings": "Settings"
+  },
+  "home": {
+    "welcome": "Welcome to Family Calendar",
+    "subtitle": "Coordinate your family's schedule in one shared place."
+  },
+  "auth": {
+    "login": "Log in",
+    "logout": "Log out",
+    "email": "Email",
+    "password": "Password",
+    "username": "Username"
+  }
+}
