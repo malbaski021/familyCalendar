@@ -4,24 +4,40 @@
 >
 > Konvencija: označavaj `[x]` kad se zadatak završi. Faza se smatra završenom kad su svi zadaci i kriterijumi prihvatanja iz nje ispunjeni.
 
+## Pravila kvaliteta (važi za svaku fazu)
+
+- **Testovi su obavezni**: svaka faza mora imati unit i/ili integration testove za svu logiku koju donosi. Komponente — React Testing Library. Helperi, agenti, serveri — Vitest unit. RLS / DB integracije — integration test sa pravom Supabase instancom.
+- **CI mora biti zelen pre merge-a**: GitHub Actions workflow trči `lint → typecheck → format:check → test → build` na svakom PR-u. Crveni check blokira merge.
+- **Bez `// @ts-ignore` i bez `any` u finalnom kodu**: tipovi se izvode iz Supabase šeme ili eksplicitno definišu. Strict TS je uključen.
+- **Pre-commit hook** (Husky + lint-staged) automatski formatira i lint-uje staged fajlove — tako da prljav kod ne stigne ni do commit-a.
+- **Acceptance kriterijum nije ispunjen** dok testovi nisu napisani i CI ne prolazi.
+
 ---
 
-## F0 — Scaffolding & osnovna infrastruktura
+## F0 — Scaffolding & osnovna infrastruktura ✅ Završeno (2026-05-26)
 
 **Cilj:** Pokrenuti prazan Next.js projekat sa svim alatima koji nam trebaju kasnije, deploy na Vercel pre nego što pišemo bilo kakvu poslovnu logiku.
 
-- [ ] Inicijalizovati Next.js (App Router) + TypeScript projekat
-- [ ] Konfigurisati ESLint + Prettier (strict TS, no implicit any)
-- [ ] Instalirati i konfigurisati Tailwind CSS
-- [ ] Inicijalizovati Shadcn/ui (theme tokens, base components: Button, Input, Dialog, Toast)
-- [ ] Postaviti light/dark theme toggle (CSS variables, `next-themes`)
-- [ ] Instalirati i konfigurisati `next-intl` (locales: `en`, `sr-Latn`, default `en`)
-- [ ] Napraviti praznu rutu `/calendar` i `/(auth)/login` kao placeholder
-- [ ] Konfigurisati `.env.example` sa svim varijablama koje će nam trebati
-- [ ] Otvoriti Vercel projekat i povezati repo
-- [ ] Prvi deploy zelenih CI provera (lint + typecheck + build)
+- [x] Inicijalizovati Next.js (App Router) + TypeScript projekat _(Next.js 16.2.6, strict TS)_
+- [x] Konfigurisati ESLint + Prettier (strict TS, no implicit any) _(eslint flat config + prettier sa Tailwind plugin)_
+- [x] Instalirati i konfigurisati Tailwind CSS _(Tailwind v4)_
+- [x] Inicijalizovati Shadcn/ui (theme tokens, base components: Button, Input, Dialog, Toast) _(Radix base, Sonner za toast)_
+- [x] Postaviti light/dark theme toggle (CSS variables, `next-themes`) _(ThemeProvider + ThemeToggle)_
+- [x] Instalirati i konfigurisati `next-intl` (locales: `en`, `sr-Latn`, default `en`) _(URL prefiks rute kroz `[locale]` segment)_
+- [x] Napraviti praznu rutu `/calendar` i `/(auth)/login` kao placeholder
+- [x] Konfigurisati `.env.example` sa svim varijablama koje će nam trebati _(Supabase, Groq, VAPID)_
+- [x] Otvoriti Vercel projekat i povezati repo _(production grana: `main`)_
+- [x] Prvi deploy zelenih CI provera (lint + typecheck + build)
 
-**Kriterijum prihvatanja:** Prazan deploy na Vercel je live, light/dark radi, jezik se može promeniti URL prefiksom (`/en`, `/sr-Latn`).
+**Dodato preko prvobitnog plana (postavljeno kao standard za sve faze):**
+
+- [x] Vitest 4 + React Testing Library + jsdom _(Windows-stable: `pool: threads`, `fileParallelism: false`)_
+- [x] Smoke testovi za `cn()` helper i `ThemeToggle` (5 testova prolazi)
+- [x] GitHub Actions CI workflow (`lint → typecheck → format:check → test → build`)
+- [x] Husky + lint-staged pre-commit hook
+- [x] Branch protection na `main` (PR obavezan, bez direct push-a)
+
+**Kriterijum prihvatanja:** Prazan deploy na Vercel je live ✓, light/dark radi ✓, jezik se može promeniti URL prefiksom (`/en`, `/sr-Latn`) ✓, CI svuda prolazi ✓.
 
 ---
 
