@@ -24,6 +24,11 @@ jobs:
           node-version: '22'
           cache: 'npm'
 
+      - name: Setup Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
       - name: Install dependencies
         run: npm ci
 
@@ -36,8 +41,24 @@ jobs:
       - name: Format check
         run: npm run format:check
 
-      - name: Test
+      - name: Unit tests
         run: npm run test:ci
+
+      - name: Start local Supabase
+        run: supabase start
+
+      - name: Run integration tests
+        run: |
+          set -e
+          eval "$(supabase status -o env)"
+          SUPABASE_LOCAL_URL="$API_URL" \
+          SUPABASE_LOCAL_ANON_KEY="$ANON_KEY" \
+          SUPABASE_LOCAL_SERVICE_KEY="$SERVICE_ROLE_KEY" \
+            npm run test:integration
+
+      - name: Stop Supabase
+        if: always()
+        run: supabase stop --no-backup
 
       - name: Build
         run: npm run build

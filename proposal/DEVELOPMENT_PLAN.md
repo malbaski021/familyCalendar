@@ -41,34 +41,42 @@
 
 ---
 
-## F1 — Supabase baza i RLS
+## F1 — Supabase baza i RLS ✅ Završeno (2026-05-26)
 
 **Cilj:** Sve od 16 tabela definisano kroz migracije, RLS pravila aktivna, lokalni i produkcioni Supabase projekat sinhronizovani.
 
-- [ ] Otvoriti Supabase projekat (free tier), zapamtiti `SUPABASE_URL` i ključeve
-- [ ] Postaviti `supabase/` folder sa CLI migracijama
-- [ ] Migracija: `users`
-- [ ] Migracija: `families`
-- [ ] Migracija: `family_members` (sa role: owner/member)
-- [ ] Migracija: `children`
-- [ ] Migracija: `invite_links` (token, role, expires_at, used_at, status)
-- [ ] Migracija: `events` (sa svim poljima, lock kolone, recurring kolone)
-- [ ] Migracija: `event_children` (M2M)
-- [ ] Migracija: `event_reminders`
-- [ ] Migracija: `event_instances`
-- [ ] Migracija: `event_shares` (sa opens_count)
-- [ ] Migracija: `drafts` (draft_data JSONB, expires_at)
-- [ ] Migracija: `ai_queue` (tasks JSONB, status enum)
-- [ ] Migracija: `audit_log` (actor, action, entity, old_data/new_data JSONB)
-- [ ] Migracija: `notifications`
-- [ ] Migracija: `push_subscriptions`
-- [ ] Migracija: `weather_cache`
-- [ ] RLS politike: korisnik vidi samo svoju porodicu (sve relevantne tabele)
-- [ ] RLS politike: Admin pristup gde je definisano (audit log all, deactivate)
-- [ ] Generisanje TypeScript tipova iz Supabase šeme (`supabase gen types`)
-- [ ] Seed skripta za lokalni razvoj (1 admin, 1 porodica, 2 člana, par događaja)
+- [x] Otvoriti Supabase projekat (free tier), zapamtiti `SUPABASE_URL` i ključeve _(projekat `emmyrrcvrzphtwvdruoz`, Frankfurt)_
+- [x] Postaviti `supabase/` folder sa CLI migracijama _(`supabase init` + `link` na cloud)_
+- [x] Migracija: `users` _(profile FK na auth.users + auto-create trigger)_
+- [x] Migracija: `families`
+- [x] Migracija: `family_members` (sa role: owner/member)
+- [x] Migracija: `children`
+- [x] Migracija: `invite_links` (token, role, expires_at, used_at, status)
+- [x] Migracija: `events` (sa svim poljima, lock kolone, recurring kolone)
+- [x] Migracija: `event_children` (M2M)
+- [x] Migracija: `event_reminders`
+- [x] Migracija: `event_instances`
+- [x] Migracija: `event_shares` (sa opens_count)
+- [x] Migracija: `drafts` (draft_data JSONB, expires_at)
+- [x] Migracija: `ai_queue` (tasks JSONB, status enum)
+- [x] Migracija: `audit_log` (actor, action, entity, old_data/new_data JSONB)
+- [x] Migracija: `notifications`
+- [x] Migracija: `push_subscriptions`
+- [x] Migracija: `weather_cache`
+- [x] RLS politike: korisnik vidi samo svoju porodicu (sve relevantne tabele) _(verifikovano integration testovima)_
+- [x] RLS politike: Admin pristup gde je definisano (audit log all, deactivate)
+- [x] Generisanje TypeScript tipova iz Supabase šeme (`supabase gen types`) _(`src/types/database.ts`)_
+- [x] Seed skripta za lokalni razvoj (1 admin, 1 porodica, 2 člana, par događaja) _(plus Smith porodica za RLS testove)_
 
-**Kriterijum prihvatanja:** Sve tabele postoje, RLS blokira pristup tuđim podacima u manuelnom testu, tipovi su importovani u app.
+**Dodato preko prvobitnog plana:**
+
+- [x] `@supabase/supabase-js` + `@supabase/ssr` instalirani; helper-i `src/lib/supabase/{client,server}.ts`
+- [x] Vitest integration test config + 23 testa (16 schema + 7 RLS scenarija)
+- [x] GitHub Actions CI sa `supabase/setup-cli` action — pokreće local stack, primenjuje migracije, trči integration testove
+- [x] npm skripte: `db:start`, `db:stop`, `db:reset`, `db:types`, `test:integration`
+- [x] Migracije organizovane logički u 9 SQL fajlova umesto 16 (grupisane srodne tabele)
+
+**Kriterijum prihvatanja:** Sve tabele postoje ✓, RLS blokira pristup tuđim podacima ✓ (integration test), tipovi su importovani u app ✓.
 
 ---
 
