@@ -4,6 +4,14 @@
 >
 > Konvencija: označavaj `[x]` kad se zadatak završi. Faza se smatra završenom kad su svi zadaci i kriterijumi prihvatanja iz nje ispunjeni.
 
+## Pravila kvaliteta (važi za svaku fazu)
+
+- **Testovi su obavezni**: svaka faza mora imati unit i/ili integration testove za svu logiku koju donosi. Komponente — React Testing Library. Helperi, agenti, serveri — Vitest unit. RLS / DB integracije — integration test sa pravom Supabase instancom.
+- **CI mora biti zelen pre merge-a**: GitHub Actions workflow trči `lint → typecheck → format:check → test → build` na svakom PR-u. Crveni check blokira merge.
+- **Bez `// @ts-ignore` i bez `any` u finalnom kodu**: tipovi se izvode iz Supabase šeme ili eksplicitno definišu. Strict TS je uključen.
+- **Pre-commit hook** (Husky + lint-staged) automatski formatira i lint-uje staged fajlove — tako da prljav kod ne stigne ni do commit-a.
+- **Acceptance kriterijum nije ispunjen** dok testovi nisu napisani i CI ne prolazi.
+
 ---
 
 ## F0 — Scaffolding & osnovna infrastruktura
