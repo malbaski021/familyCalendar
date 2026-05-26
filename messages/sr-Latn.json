@@ -9,7 +9,9 @@
     "cancel": "Otkaži",
     "delete": "Obriši",
     "edit": "Izmeni",
-    "back": "Nazad"
+    "back": "Nazad",
+    "submit": "Pošalji",
+    "submitting": "Šaljem..."
   },
   "nav": {
     "calendar": "Kalendar",
@@ -26,6 +28,49 @@
     "logout": "Odjavi se",
     "email": "Email",
     "password": "Lozinka",
-    "username": "Korisničko ime"
+    "newPassword": "Nova lozinka",
+    "confirmPassword": "Potvrdi lozinku",
+    "username": "Korisničko ime",
+    "signUp": {
+      "title": "Napravi nalog",
+      "subtitle": "Unesi podatke ispod za registraciju.",
+      "submit": "Registruj se",
+      "submitting": "Registracija...",
+      "haveAccount": "Već imaš nalog?",
+      "loginLink": "Prijavi se",
+      "success": "Nalog je napravljen. Prijavljen si."
+    },
+    "signIn": {
+      "title": "Prijava",
+      "subtitle": "Dobrodošao nazad. Unesi svoje podatke ispod.",
+      "submit": "Prijavi se",
+      "submitting": "Prijava...",
+      "noAccount": "Nemaš nalog?",
+      "signUpLink": "Registruj se",
+      "forgotPassword": "Zaboravio si lozinku?"
+    },
+    "logout": {
+      "submit": "Odjavi se",
+      "submitting": "Odjava..."
+    },
+    "forgotPassword": {
+      "title": "Reset lozinke",
+      "subtitle": "Poslaćemo ti email sa linkom za reset.",
+      "submit": "Pošalji link",
+      "submitting": "Šaljem...",
+      "success": "Ako nalog za taj email postoji, link za reset je poslat.",
+      "backToLogin": "Nazad na prijavu"
+    },
+    "resetPassword": {
+      "title": "Postavi novu lozinku",
+      "subtitle": "Unesi novu lozinku ispod.",
+      "submit": "Sačuvaj lozinku",
+      "submitting": "Čuvam...",
+      "success": "Lozinka je promenjena. Sada se možeš prijaviti.",
+      "loginLink": "Idi na prijavu"
+    },
+    "errors": {
+      "generic": "Nešto je pošlo po zlu. Pokušaj ponovo."
+    }
   }
 }
