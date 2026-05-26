@@ -11,6 +11,7 @@ export default defineConfig({
     css: true,
     pool: 'threads',
     fileParallelism: false,
+    exclude: ['node_modules', 'dist', '.next', 'src/test/integration/**'],
   },
   resolve: {
     alias: {
