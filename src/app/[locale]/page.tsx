@@ -1,0 +1,41 @@
+import { useTranslations } from 'next-intl';
+import { setRequestLocale } from 'next-intl/server';
+import { Link } from '@/i18n/navigation';
+import { Button } from '@/components/ui/button';
+import { ThemeToggle } from '@/components/theme-toggle';
+
+type Props = {
+  params: Promise<{ locale: string }>;
+};
+
+export default async function HomePage({ params }: Props) {
+  const { locale } = await params;
+  setRequestLocale(locale);
+  return <Home />;
+}
+
+function Home() {
+  const t = useTranslations('home');
+  const tNav = useTranslations('nav');
+  const tAuth = useTranslations('auth');
+
+  return (
+    <div className="flex flex-1 flex-col items-center justify-center px-6">
+      <div className="absolute top-4 right-4">
+        <ThemeToggle />
+      </div>
+      <main className="flex max-w-2xl flex-col items-center gap-6 text-center">
+        <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl">{t('welcome')}</h1>
+        <p className="text-muted-foreground text-lg">{t('subtitle')}</p>
+        <div className="mt-4 flex gap-3">
+          <Button asChild>
+            <Link href="/calendar">{tNav('calendar')}</Link>
+          </Button>
+          <Button asChild variant="outline">
+            <Link href="/login">{tAuth('login')}</Link>
+          </Button>
+        </div>
+      </main>
+    </div>
+  );
+}
