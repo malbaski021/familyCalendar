@@ -1,5 +1,7 @@
-import { useTranslations } from 'next-intl';
-import { setRequestLocale } from 'next-intl/server';
+import { Suspense } from 'react';
+import { getTranslations, setRequestLocale } from 'next-intl/server';
+import { Link } from '@/i18n/navigation';
+import { LoginForm } from '@/components/auth/login-form';
 
 type Props = {
   params: Promise<{ locale: string }>;
@@ -8,16 +10,28 @@ type Props = {
 export default async function LoginPage({ params }: Props) {
   const { locale } = await params;
   setRequestLocale(locale);
-  return <LoginView />;
-}
-
-function LoginView() {
-  const tAuth = useTranslations('auth');
+  const t = await getTranslations({ locale, namespace: 'auth' });
 
   return (
-    <div className="flex flex-1 flex-col items-center justify-center p-6">
-      <h1 className="text-3xl font-semibold tracking-tight">{tAuth('login')}</h1>
-      <p className="text-muted-foreground mt-2">Placeholder — auth lands in F2.</p>
+    <div className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center gap-6 p-6">
+      <header className="space-y-1">
+        <h1 className="text-2xl font-semibold tracking-tight">{t('signIn.title')}</h1>
+        <p className="text-muted-foreground text-sm">{t('signIn.subtitle')}</p>
+      </header>
+      <Suspense>
+        <LoginForm />
+      </Suspense>
+      <div className="text-muted-foreground flex flex-col gap-1 text-sm">
+        <Link href="/forgot-password" className="underline-offset-4 hover:underline">
+          {t('signIn.forgotPassword')}
+        </Link>
+        <p>
+          {t('signIn.noAccount')}{' '}
+          <Link href="/signup" className="underline-offset-4 hover:underline">
+            {t('signIn.signUpLink')}
+          </Link>
+        </p>
+      </div>
     </div>
   );
 }

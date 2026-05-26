@@ -80,22 +80,85 @@
 
 ---
 
-## F2 — Autentikacija (Supabase Auth)
+## F2 — Autentikacija (Supabase Auth) ✅ Završeno (2026-05-26)
 
 **Cilj:** Korisnik se može registrovati i ulogovati. Sesija perzistira. Bez email verifikacije.
 
-- [ ] Supabase Auth client (server + browser) helper
-- [ ] Forma za registraciju: email, username, password (validacija)
-- [ ] Hash password preko Supabase Auth (bcrypt iza scene)
-- [ ] Login forma
-- [ ] Logout
-- [ ] Middleware za zaštićene rute (`/calendar`, `/settings`)
-- [ ] Password reset preko email linka
-- [ ] Auth context / session hook
-- [ ] Server-side helper: `getCurrentUser()` + role lookup
-- [ ] Toast za auth greške
+- [x] Supabase Auth client (server + browser) helper _(`src/lib/supabase/{client,server,middleware}.ts`, sve tipovano sa `Database`)_
+- [x] Forma za registraciju: email, username, password (validacija) _(`SignUpForm` sa Zod + react-hook-form)_
+- [x] Hash password preko Supabase Auth (bcrypt iza scene)
+- [x] Login forma _(`LoginForm` sa `redirectTo` query param podrškom)_
+- [x] Logout _(`LogoutButton` + `logoutAction` server action)_
+- [x] Middleware za zaštićene rute (`/calendar`, `/settings`) _(`src/proxy.ts` kombinuje next-intl + Supabase session refresh + redirect za neulogovane)_
+- [x] Password reset preko email linka _(`ResetPasswordRequestForm` + `NewPasswordForm` + dve rute)_
+- [x] Auth context / session hook _(`useAuth()` client hook sa onAuthStateChange subscription)_
+- [x] Server-side helper: `getCurrentUser()` + role lookup _(React-cached, vraća `{authId, email, profile}`)_
+- [x] Toast za auth greške _(Sonner integration u svakoj formi)_
 
-**Kriterijum prihvatanja:** Mogu se registrovati, ulogovati, izlogovati i resetovati password kroz UI. Session preživljava refresh.
+**Dodato preko prvobitnog plana:**
+
+- [x] Zod schemas u `src/lib/auth/schemas.ts` + dedikovani unit testovi za schemas (10 testova)
+- [x] Server actions u `src/lib/auth/actions.ts` (signUp, login, logout, requestPasswordReset, updatePassword)
+- [x] Privremena `/signup` ruta (F3 će je zameniti invite-only flow-om)
+- [x] Auth i18n stringovi dodati u oba `messages/*.json`
+- [x] Test wrapper `src/test/utils.tsx` (renderWithProviders sa NextIntlClientProvider)
+- [x] Integration testovi za auth lifecycle (signUp → profile trigger → login → wrong password rejected)
+- [x] README ažuriran sa kompletnim setup instrukcijama, env vars, npm scripts, struktura projekta
+
+**Manuelna podešavanja na Supabase Dashboard:**
+
+- [x] Disable "Confirm email" u Authentication → Providers → Email
+- [x] Site URL: `https://family-calendar-two-pink.vercel.app`
+- [x] Redirect URLs: `http://localhost:3000/**`, `https://*.vercel.app/**`
+
+**Kriterijum prihvatanja:** Mogu se registrovati, ulogovati, izlogovati i resetovati password kroz UI ✓. Session preživljava refresh ✓. Neulogovan pristup `/calendar` preusmerava na `/login?redirectTo=...` ✓.
+
+---
+
+## F2.1 — Test ID konvencija + LanguageToggle
+
+**Cilj:** Svaki interaktivni element ima stabilan `data-testid` koji omogućava pouzdano lociranje u unit / E2E testovima, plus mehanizam koji sprečava da neko zaboravi da ga doda. Pored toga, korisnik može da promeni jezik kroz UI (ne samo URL prefiksom).
+
+**Konvencija imenovanja** (hijerarhijski sa kontekstom):
+
+- Format: `<context>-<component>-<element>`, kebab-case
+- Primeri:
+  - `signup-form-email-input`
+  - `signup-form-submit-button`
+  - `nav-language-toggle`
+  - `nav-theme-toggle`
+  - `calendar-day-2026-05-15-cell`
+- Tag se čita kao putanja od široko ka usko — testovi mogu da koriste exact match ili prefix.
+
+**Šta se smatra "interaktivnim elementom":**
+
+- Native HTML: `<button>`, `<input>`, `<select>`, `<textarea>`, `<a>` sa href, `<form>`
+- Shadcn primitive: `Button`, `Input`, `Dialog`, `Sonner toast actions`, `Dropdown`, `Select`
+- Naše custom forme: `SignUpForm`, `LoginForm`, `ResetPasswordRequestForm`, `NewPasswordForm`
+- Buduće: kalendarske ćelije, event kartice, child tag pickeri, AI predlog dugmad
+
+### Zadaci
+
+- [ ] Custom ESLint pravilo `require-data-testid` u `eslint.config.mjs`:
+  - Provera interaktivnih elemenata (lista iznad)
+  - Error level (CI puca, ne samo warning)
+  - Exception za testovne fajlove (`*.test.*`, `src/test/**`)
+- [ ] Helper tip u `src/lib/test-id.ts` za konstrukciju ID-jeva (opciono — pomaže konzistentnost)
+- [ ] Retroaktivno dodati `data-testid` na sve postojeće interaktivne elemente iz F0–F2:
+  - `ThemeToggle` → `nav-theme-toggle`
+  - `LogoutButton` → `nav-logout-button`
+  - `SignUpForm`: email, username, password inputs + submit
+  - `LoginForm`: email, password inputs + submit
+  - `ResetPasswordRequestForm`: email input + submit
+  - `NewPasswordForm`: password, confirmPassword inputs + submit
+- [ ] `LanguageToggle` komponenta — Globe ikona (`lucide-react`) → Shadcn Dropdown sa stavkama "English" i "Srpski (latinica)"
+  - Koristi `useRouter` iz `@/i18n/navigation` za promenu lokala
+  - Trenutno aktivan jezik označen u dropdown-u
+  - Postavljen pored `ThemeToggle` u home page (kasnije: u Settings page i u bottom nav)
+- [ ] Unit testovi: ESLint pravilo otkriva element bez `data-testid`; `LanguageToggle` renderuje i menja lokal
+- [ ] Update `AGENTS.md` ili `CLAUDE.md` da kaže: svaki novi interaktivni element MORA imati `data-testid` (ESLint to forsira)
+
+**Kriterijum prihvatanja:** `npm run lint` puca ako se doda interaktivni element bez `data-testid`. Svi postojeći elementi imaju tag. Korisnik može da promeni jezik kroz dropdown u UI-ju.
 
 ---
 

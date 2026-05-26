@@ -9,7 +9,9 @@
     "cancel": "Cancel",
     "delete": "Delete",
     "edit": "Edit",
-    "back": "Back"
+    "back": "Back",
+    "submit": "Submit",
+    "submitting": "Submitting..."
   },
   "nav": {
     "calendar": "Calendar",
@@ -26,6 +28,49 @@
     "logout": "Log out",
     "email": "Email",
     "password": "Password",
-    "username": "Username"
+    "newPassword": "New password",
+    "confirmPassword": "Confirm password",
+    "username": "Username",
+    "signUp": {
+      "title": "Create your account",
+      "subtitle": "Enter your details below to sign up.",
+      "submit": "Sign up",
+      "submitting": "Signing up...",
+      "haveAccount": "Already have an account?",
+      "loginLink": "Log in",
+      "success": "Account created. You are signed in."
+    },
+    "signIn": {
+      "title": "Log in",
+      "subtitle": "Welcome back. Enter your credentials below.",
+      "submit": "Log in",
+      "submitting": "Logging in...",
+      "noAccount": "Don't have an account?",
+      "signUpLink": "Sign up",
+      "forgotPassword": "Forgot your password?"
+    },
+    "logout": {
+      "submit": "Log out",
+      "submitting": "Logging out..."
+    },
+    "forgotPassword": {
+      "title": "Reset your password",
+      "subtitle": "We will send you an email with a reset link.",
+      "submit": "Send reset link",
+      "submitting": "Sending...",
+      "success": "If an account exists for that email, a reset link has been sent.",
+      "backToLogin": "Back to login"
+    },
+    "resetPassword": {
+      "title": "Set a new password",
+      "subtitle": "Enter your new password below.",
+      "submit": "Update password",
+      "submitting": "Updating...",
+      "success": "Password updated. You can now log in.",
+      "loginLink": "Go to login"
+    },
+    "errors": {
+      "generic": "Something went wrong. Please try again."
+    }
   }
 }
