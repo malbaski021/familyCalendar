@@ -1,10 +1,12 @@
 import type { Metadata } from 'next';
 import { NextIntlClientProvider, hasLocale } from 'next-intl';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
+import { cookies } from 'next/headers';
 import { notFound } from 'next/navigation';
 import { Geist, Geist_Mono } from 'next/font/google';
 import { routing } from '@/i18n/routing';
 import { ThemeProvider } from '@/components/theme-provider';
+import { THEME_COOKIE, isTheme, type Theme } from '@/lib/theme';
 import { Toaster } from '@/components/ui/sonner';
 import '../globals.css';
 
@@ -48,20 +50,23 @@ export default async function LocaleLayout({
   }
   setRequestLocale(locale);
 
+  const cookieStore = await cookies();
+  const stored = cookieStore.get(THEME_COOKIE)?.value;
+  const initialTheme: Theme = isTheme(stored) ? stored : 'system';
+  // Server cannot read prefers-color-scheme — for 'system' we emit no theme
+  // class and let CSS (prefers-color-scheme media query in globals.css) decide
+  // the initial palette without a flash.
+  const htmlThemeClass = initialTheme === 'system' ? '' : initialTheme;
+
   return (
     <html
       lang={locale}
       suppressHydrationWarning
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${geistSans.variable} ${geistMono.variable} ${htmlThemeClass} h-full antialiased`}
     >
       <body className="flex min-h-full flex-col">
         <NextIntlClientProvider>
-          <ThemeProvider
-            attribute="class"
-            defaultTheme="system"
-            enableSystem
-            disableTransitionOnChange
-          >
+          <ThemeProvider initialTheme={initialTheme} enableSystem disableTransitionOnChange>
             {children}
             <Toaster />
           </ThemeProvider>
