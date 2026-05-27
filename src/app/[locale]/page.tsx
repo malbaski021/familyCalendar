@@ -37,7 +37,7 @@ function Home() {
         <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl">{t('welcome')}</h1>
         <p className="text-muted-foreground text-lg">{t('subtitle')}</p>
         <div className="mt-4">
-          <Button asChild>
+          <Button asChild data-testid="home-login-button">
             <Link href="/login">{tAuth('login')}</Link>
           </Button>
         </div>

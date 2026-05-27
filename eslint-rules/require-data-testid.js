@@ -110,9 +110,11 @@ const rule = {
         // Escape hatch: spread props may carry the testid.
         if (hasSpread(node)) return;
 
-        // Escape hatch: Radix Slot pattern forwards attributes to the child.
-        if (hasAttribute(node, 'asChild')) return;
-
+        // `asChild` (Radix Slot) is NOT an escape hatch on its own. Slot
+        // forwards `data-testid` from the parent down to the rendered child,
+        // so the right place to attach a testid IS the asChild parent. If
+        // the parent has the attribute we accept; otherwise the rendered
+        // element ends up untestable.
         if (hasAttribute(node, 'data-testid')) return;
 
         context.report({ node, messageId: 'missing', data: { name } });

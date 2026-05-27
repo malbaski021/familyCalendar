@@ -23,9 +23,8 @@ ruleTester.run('require-data-testid', rule, {
     { code: '<Button data-testid="nav-foo">Hi</Button>' },
     // Spread escape hatch — testid may live inside spread.
     { code: '<Button {...props}>Hi</Button>' },
-    // asChild escape hatch — Slot forwards attributes to the (non-interactive) child.
-    // Note: a Link from @/i18n/navigation is a component not in the interactive list.
-    { code: '<Button asChild><Link href="/x">x</Link></Button>' },
+    // asChild is allowed when the parent itself carries the testid (Slot forwards it down).
+    { code: '<Button asChild data-testid="cta"><Link href="/x">x</Link></Button>' },
     // Anchor without href is not interactive.
     { code: '<a>Just text</a>' },
     // Non-interactive native tags are ignored.
@@ -57,6 +56,11 @@ ruleTester.run('require-data-testid', rule, {
     {
       code: '<form onSubmit={() => {}}>x</form>',
       errors: [{ messageId: 'missing', data: { name: 'form' } }],
+    },
+    // asChild without testid on the parent leaves the rendered child untestable.
+    {
+      code: '<Button asChild><Link href="/x">x</Link></Button>',
+      errors: [{ messageId: 'missing', data: { name: 'Button' } }],
     },
   ],
 });

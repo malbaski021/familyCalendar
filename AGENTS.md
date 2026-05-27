@@ -23,8 +23,9 @@ Examples:
 Escape hatches the rule honours:
 
 - The element has a `{...spread}` attribute (testid may be inside).
-- The element has `asChild` (Radix Slot forwards attributes to the child).
 - The file is a test file or lives under `src/test/**`.
 - The file lives under `src/components/ui/**` (Shadcn primitives — consumers attach the testid on the wrapping element).
+
+`asChild` is **not** an escape hatch. Radix Slot forwards `data-testid` from the parent down to the rendered child, so attach the testid on the `asChild` parent (`<Button asChild data-testid="…">…</Button>`).
 
 When adding a new interactive primitive, register its component name in the rule options or add an explicit `data-testid` to every callsite.
