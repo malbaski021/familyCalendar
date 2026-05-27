@@ -6,7 +6,7 @@ import { ThemeToggle } from './theme-toggle';
 describe('ThemeToggle', () => {
   it('renders a button with accessible label', () => {
     render(
-      <ThemeProvider attribute="class" defaultTheme="light">
+      <ThemeProvider initialTheme="light">
         <ThemeToggle />
       </ThemeProvider>,
     );
