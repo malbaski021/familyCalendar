@@ -46,7 +46,11 @@ export function NewPasswordForm() {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-4">
+      <form
+        onSubmit={form.handleSubmit(onSubmit)}
+        className="grid gap-4"
+        data-testid="reset-password-form"
+      >
         <FormField
           control={form.control}
           name="password"
@@ -54,7 +58,12 @@ export function NewPasswordForm() {
             <FormItem>
               <FormLabel>{t('newPassword')}</FormLabel>
               <FormControl>
-                <Input type="password" autoComplete="new-password" {...field} />
+                <Input
+                  type="password"
+                  autoComplete="new-password"
+                  data-testid="reset-password-form-password-input"
+                  {...field}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -67,7 +76,12 @@ export function NewPasswordForm() {
             <FormItem>
               <FormLabel>{t('confirmPassword')}</FormLabel>
               <FormControl>
-                <Input type="password" autoComplete="new-password" {...field} />
+                <Input
+                  type="password"
+                  autoComplete="new-password"
+                  data-testid="reset-password-form-confirm-password-input"
+                  {...field}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -78,7 +92,7 @@ export function NewPasswordForm() {
             {serverError}
           </p>
         )}
-        <Button type="submit" disabled={isPending}>
+        <Button type="submit" disabled={isPending} data-testid="reset-password-form-submit-button">
           {isPending ? t('resetPassword.submitting') : t('resetPassword.submit')}
         </Button>
       </form>

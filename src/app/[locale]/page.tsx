@@ -2,6 +2,7 @@ import { useTranslations } from 'next-intl';
 import { setRequestLocale } from 'next-intl/server';
 import { Link } from '@/i18n/navigation';
 import { Button } from '@/components/ui/button';
+import { LanguageToggle } from '@/components/language-toggle';
 import { ThemeToggle } from '@/components/theme-toggle';
 
 type Props = {
@@ -21,7 +22,8 @@ function Home() {
 
   return (
     <div className="flex flex-1 flex-col items-center justify-center px-6">
-      <div className="absolute top-4 right-4">
+      <div className="absolute top-4 right-4 flex items-center gap-1">
+        <LanguageToggle />
         <ThemeToggle />
       </div>
       <main className="flex max-w-2xl flex-col items-center gap-6 text-center">

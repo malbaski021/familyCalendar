@@ -17,6 +17,7 @@ export function LogoutButton({ className }: { className?: string }) {
       className={className}
       disabled={isPending}
       onClick={() => startTransition(() => logoutAction())}
+      data-testid="nav-logout-button"
     >
       {isPending ? t('logout.submitting') : t('logout.submit')}
     </Button>

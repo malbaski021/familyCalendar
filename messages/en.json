@@ -17,7 +17,10 @@
     "calendar": "Calendar",
     "add": "Add",
     "profile": "Profile",
-    "settings": "Settings"
+    "settings": "Settings",
+    "language": "Language",
+    "languageEn": "English",
+    "languageSrLatn": "Srpski (latinica)"
   },
   "home": {
     "welcome": "Welcome to Family Calendar",

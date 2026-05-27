@@ -115,7 +115,7 @@
 
 ---
 
-## F2.1 — Test ID konvencija + LanguageToggle
+## F2.1 — Test ID konvencija + LanguageToggle ✅ Završeno (2026-05-27)
 
 **Cilj:** Svaki interaktivni element ima stabilan `data-testid` koji omogućava pouzdano lociranje u unit / E2E testovima, plus mehanizam koji sprečava da neko zaboravi da ga doda. Pored toga, korisnik može da promeni jezik kroz UI (ne samo URL prefiksom).
 
@@ -139,26 +139,26 @@
 
 ### Zadaci
 
-- [ ] Custom ESLint pravilo `require-data-testid` u `eslint.config.mjs`:
-  - Provera interaktivnih elemenata (lista iznad)
-  - Error level (CI puca, ne samo warning)
-  - Exception za testovne fajlove (`*.test.*`, `src/test/**`)
-- [ ] Helper tip u `src/lib/test-id.ts` za konstrukciju ID-jeva (opciono — pomaže konzistentnost)
-- [ ] Retroaktivno dodati `data-testid` na sve postojeće interaktivne elemente iz F0–F2:
+- [x] Custom ESLint pravilo `local/require-data-testid` u `eslint-rules/` (registrovano kao plugin u flat config-u): _proverava native interaktivne tagove + listu komponenti, error level, exempt test fajlova i `src/components/ui/**` primitive_
+- [x] Escape hatches: spread atribut, `asChild` (Slot pattern), test fajlovi, ui/ folder
+- [x] Retroaktivno dodat `data-testid` na sve interaktivne elemente iz F0–F2:
   - `ThemeToggle` → `nav-theme-toggle`
   - `LogoutButton` → `nav-logout-button`
-  - `SignUpForm`: email, username, password inputs + submit
-  - `LoginForm`: email, password inputs + submit
-  - `ResetPasswordRequestForm`: email input + submit
-  - `NewPasswordForm`: password, confirmPassword inputs + submit
-- [ ] `LanguageToggle` komponenta — Globe ikona (`lucide-react`) → Shadcn Dropdown sa stavkama "English" i "Srpski (latinica)"
-  - Koristi `useRouter` iz `@/i18n/navigation` za promenu lokala
-  - Trenutno aktivan jezik označen u dropdown-u
-  - Postavljen pored `ThemeToggle` u home page (kasnije: u Settings page i u bottom nav)
-- [ ] Unit testovi: ESLint pravilo otkriva element bez `data-testid`; `LanguageToggle` renderuje i menja lokal
-- [ ] Update `AGENTS.md` ili `CLAUDE.md` da kaže: svaki novi interaktivni element MORA imati `data-testid` (ESLint to forsira)
+  - `SignUpForm`: `signup-form-{email,username,password}-input`, `signup-form-submit-button`, `signup-form`
+  - `LoginForm`: `login-form-{email,password}-input`, `login-form-submit-button`, `login-form`
+  - `ResetPasswordRequestForm`: `forgot-password-form-email-input`, `forgot-password-form-submit-button`, `forgot-password-form`
+  - `NewPasswordForm`: `reset-password-form-{password,confirm-password}-input`, `reset-password-form-submit-button`, `reset-password-form`
+- [x] `LanguageToggle` komponenta — Globe ikona (lucide-react) → Shadcn DropdownMenu sa stavkama "English" i "Srpski (latinica)"
+  - Koristi `useRouter` + `usePathname` iz `@/i18n/navigation` za zamenu lokala u mestu
+  - Aktivan lokal markiran sa `data-active="true"` na `DropdownMenuItem`
+  - Postavljen pored `ThemeToggle` u home page-u (Settings i bottom nav dolaze kasnije)
+  - `data-testid="nav-language-toggle"` na trigger-u i `nav-language-toggle-option-<locale>` na svakoj stavki
+- [x] Unit testovi:
+  - `eslint-rules/require-data-testid.test.ts` — 14 RuleTester slučajeva (8 valid + 6 invalid, pokrivaju sve escape hatch-eve)
+  - `src/components/language-toggle.test.tsx` — 3 testa: render, promena lokala, no-op na aktivnom lokalu
+- [x] Update `AGENTS.md` — sekcija "data-testid on every interactive element" sa konvencijom, listom interaktivnih elemenata i escape hatch pravilima
 
-**Kriterijum prihvatanja:** `npm run lint` puca ako se doda interaktivni element bez `data-testid`. Svi postojeći elementi imaju tag. Korisnik može da promeni jezik kroz dropdown u UI-ju.
+**Kriterijum prihvatanja:** `npm run lint` puca ako se doda interaktivni element bez `data-testid` ✓ (verifikovano — 10 grešaka pre dodavanja, 0 posle). Svi postojeći elementi imaju tag ✓. Korisnik može da promeni jezik kroz dropdown u UI-ju ✓.
 
 ---
 

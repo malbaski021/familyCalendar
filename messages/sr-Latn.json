@@ -17,7 +17,10 @@
     "calendar": "Kalendar",
     "add": "Dodaj",
     "profile": "Profil",
-    "settings": "Podešavanja"
+    "settings": "Podešavanja",
+    "language": "Jezik",
+    "languageEn": "English",
+    "languageSrLatn": "Srpski (latinica)"
   },
   "home": {
     "welcome": "Dobrodošli u Porodični kalendar",
