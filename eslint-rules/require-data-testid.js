@@ -2,20 +2,35 @@
  * ESLint rule: require-data-testid
  *
  * Enforces `data-testid` on every interactive JSX element so tests
- * (unit and E2E) can locate it deterministically.
+ * (unit and E2E) can locate it deterministically. The rule is intentionally
+ * strict — there is no `{...spread}` escape hatch; if a callsite spreads
+ * external props it must still attach an explicit testid on top.
  *
- * Naming convention (documented in CLAUDE.md): `<context>-<component>-<element>`,
- * kebab-case. Example: `signup-form-email-input`, `nav-language-toggle`.
+ * Naming convention (also in AGENTS.md): `<context>-<component>-<element>`,
+ * kebab-case, hierarchical (broad → narrow).
+ *   Examples: `signup-form-email-input`, `nav-language-toggle`,
+ *             `login-page-forgot-password-link`.
  *
- * Escape hatches:
- *  - The element has any `{...spread}` attribute (the testid may be inside).
- *  - The element has `asChild` (Radix Slot forwards the testid down).
- *  - The file is a test file (matched by ESLint config `files` glob).
+ * What counts as interactive:
+ *   1. Any JSX element carrying an `href` attribute (covers native `<a>`
+ *      and component wrappers like next-intl `<Link>`, `next/link`, etc.).
+ *   2. Native form/control tags listed in `nativeTags`.
+ *   3. Components listed in `components`.
+ *
+ * Where the rule does NOT run (configured in eslint.config.mjs):
+ *   - Test files (`*.test.*`, `src/test/**`).
+ *   - Shadcn primitives under `src/components/ui/**` — those are library
+ *     code and consumers attach the testid on the wrapping element.
+ *
+ * Notes on patterns:
+ *   - `asChild` (Radix Slot) parents render nothing of their own — the rule
+ *     skips them and checks the JSX child instead. Attach the testid where it
+ *     actually lands in the DOM, on the inner element (the one with `href`,
+ *     or whichever leaf element is rendered).
  *
  * Options:
- *  - `nativeTags`: array of lowercase tag names treated as interactive.
- *  - `components`: array of PascalCase component names treated as interactive.
- *  - `anchorRequiresHref`: when true (default) `<a>` is only interactive if it has `href`.
+ *   - `nativeTags`: array of lowercase tag names treated as interactive.
+ *   - `components`: array of PascalCase component names treated as interactive.
  */
 
 const DEFAULT_NATIVE_TAGS = ['button', 'input', 'select', 'textarea', 'form'];
@@ -29,10 +44,6 @@ function hasAttribute(node, name) {
       attr.name.type === 'JSXIdentifier' &&
       attr.name.name === name,
   );
-}
-
-function hasSpread(node) {
-  return node.attributes.some((attr) => attr.type === 'JSXSpreadAttribute');
 }
 
 function getElementName(node) {
@@ -64,15 +75,8 @@ const rule = {
       {
         type: 'object',
         properties: {
-          nativeTags: {
-            type: 'array',
-            items: { type: 'string' },
-          },
-          components: {
-            type: 'array',
-            items: { type: 'string' },
-          },
-          anchorRequiresHref: { type: 'boolean' },
+          nativeTags: { type: 'array', items: { type: 'string' } },
+          components: { type: 'array', items: { type: 'string' } },
         },
         additionalProperties: false,
       },
@@ -86,7 +90,6 @@ const rule = {
     const options = context.options[0] ?? {};
     const nativeTags = new Set(options.nativeTags ?? DEFAULT_NATIVE_TAGS);
     const components = new Set(options.components ?? DEFAULT_COMPONENTS);
-    const anchorRequiresHref = options.anchorRequiresHref !== false;
 
     return {
       JSXOpeningElement(node) {
@@ -94,27 +97,19 @@ const rule = {
         if (!name) return;
 
         const isLowerCase = /^[a-z]/.test(name);
-        let interactive = false;
+        const isComponent = !isLowerCase;
 
-        if (isLowerCase) {
-          if (nativeTags.has(name)) interactive = true;
-          if (name === 'a' && (!anchorRequiresHref || hasAttribute(node, 'href'))) {
-            interactive = true;
-          }
-        } else {
-          if (components.has(name)) interactive = true;
-        }
+        // asChild (Radix Slot) means this element renders nothing of its own —
+        // it merges into the JSX child. The rule will check the child instead,
+        // where the testid actually belongs in the rendered DOM.
+        if (isComponent && hasAttribute(node, 'asChild')) return;
+
+        let interactive = false;
+        if (hasAttribute(node, 'href')) interactive = true;
+        else if (!isComponent) interactive = nativeTags.has(name);
+        else interactive = components.has(name);
 
         if (!interactive) return;
-
-        // Escape hatch: spread props may carry the testid.
-        if (hasSpread(node)) return;
-
-        // `asChild` (Radix Slot) is NOT an escape hatch on its own. Slot
-        // forwards `data-testid` from the parent down to the rendered child,
-        // so the right place to attach a testid IS the asChild parent. If
-        // the parent has the attribute we accept; otherwise the rendered
-        // element ends up untestable.
         if (hasAttribute(node, 'data-testid')) return;
 
         context.report({ node, messageId: 'missing', data: { name } });

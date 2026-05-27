@@ -22,12 +22,20 @@ export default async function LoginPage({ params }: Props) {
         <LoginForm />
       </Suspense>
       <div className="text-muted-foreground flex flex-col gap-1 text-sm">
-        <Link href="/forgot-password" className="underline-offset-4 hover:underline">
+        <Link
+          href="/forgot-password"
+          className="underline-offset-4 hover:underline"
+          data-testid="login-page-forgot-password-link"
+        >
           {t('signIn.forgotPassword')}
         </Link>
         <p>
           {t('signIn.noAccount')}{' '}
-          <Link href="/signup" className="underline-offset-4 hover:underline">
+          <Link
+            href="/signup"
+            className="underline-offset-4 hover:underline"
+            data-testid="login-page-signup-link"
+          >
             {t('signIn.signUpLink')}
           </Link>
         </p>
