@@ -52,7 +52,11 @@ export function ResetPasswordRequestForm() {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-4">
+      <form
+        onSubmit={form.handleSubmit(onSubmit)}
+        className="grid gap-4"
+        data-testid="forgot-password-form"
+      >
         <FormField
           control={form.control}
           name="email"
@@ -60,13 +64,18 @@ export function ResetPasswordRequestForm() {
             <FormItem>
               <FormLabel>{t('email')}</FormLabel>
               <FormControl>
-                <Input type="email" autoComplete="email" {...field} />
+                <Input
+                  type="email"
+                  autoComplete="email"
+                  data-testid="forgot-password-form-email-input"
+                  {...field}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
-        <Button type="submit" disabled={isPending}>
+        <Button type="submit" disabled={isPending} data-testid="forgot-password-form-submit-button">
           {isPending ? t('forgotPassword.submitting') : t('forgotPassword.submit')}
         </Button>
       </form>

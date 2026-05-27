@@ -46,7 +46,7 @@ export function LoginForm() {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-4">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-4" data-testid="login-form">
         <FormField
           control={form.control}
           name="email"
@@ -54,7 +54,12 @@ export function LoginForm() {
             <FormItem>
               <FormLabel>{t('email')}</FormLabel>
               <FormControl>
-                <Input type="email" autoComplete="email" {...field} />
+                <Input
+                  type="email"
+                  autoComplete="email"
+                  data-testid="login-form-email-input"
+                  {...field}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -67,7 +72,12 @@ export function LoginForm() {
             <FormItem>
               <FormLabel>{t('password')}</FormLabel>
               <FormControl>
-                <Input type="password" autoComplete="current-password" {...field} />
+                <Input
+                  type="password"
+                  autoComplete="current-password"
+                  data-testid="login-form-password-input"
+                  {...field}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -78,7 +88,7 @@ export function LoginForm() {
             {serverError}
           </p>
         )}
-        <Button type="submit" disabled={isPending}>
+        <Button type="submit" disabled={isPending} data-testid="login-form-submit-button">
           {isPending ? t('signIn.submitting') : t('signIn.submit')}
         </Button>
       </form>

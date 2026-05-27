@@ -47,7 +47,7 @@ export function SignUpForm() {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-4">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-4" data-testid="signup-form">
         <FormField
           control={form.control}
           name="email"
@@ -55,7 +55,12 @@ export function SignUpForm() {
             <FormItem>
               <FormLabel>{t('email')}</FormLabel>
               <FormControl>
-                <Input type="email" autoComplete="email" {...field} />
+                <Input
+                  type="email"
+                  autoComplete="email"
+                  data-testid="signup-form-email-input"
+                  {...field}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -68,7 +73,11 @@ export function SignUpForm() {
             <FormItem>
               <FormLabel>{t('username')}</FormLabel>
               <FormControl>
-                <Input autoComplete="username" {...field} />
+                <Input
+                  autoComplete="username"
+                  data-testid="signup-form-username-input"
+                  {...field}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -81,7 +90,12 @@ export function SignUpForm() {
             <FormItem>
               <FormLabel>{t('password')}</FormLabel>
               <FormControl>
-                <Input type="password" autoComplete="new-password" {...field} />
+                <Input
+                  type="password"
+                  autoComplete="new-password"
+                  data-testid="signup-form-password-input"
+                  {...field}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -92,7 +106,7 @@ export function SignUpForm() {
             {serverError}
           </p>
         )}
-        <Button type="submit" disabled={isPending}>
+        <Button type="submit" disabled={isPending} data-testid="signup-form-submit-button">
           {isPending ? t('signUp.submitting') : t('signUp.submit')}
         </Button>
       </form>
