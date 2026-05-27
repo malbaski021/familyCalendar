@@ -75,5 +75,54 @@
     "errors": {
       "generic": "Nešto je pošlo po zlu. Pokušaj ponovo."
     }
+  },
+  "invite": {
+    "title": "Pridruži se porodici {family}",
+    "subtitle": "Dodaješ se kao {role}. Unesi podatke ispod.",
+    "role": {
+      "owner": "Owner",
+      "member": "Member"
+    },
+    "invalidTitle": "Ovaj pozivni link se ne može koristiti",
+    "backToLogin": "Nazad na prijavu",
+    "errors": {
+      "notFound": "Ne možemo da nađemo taj poziv. Proveri link ili zatraži novi od osobe koja ga je poslala.",
+      "expired": "Pozivni link je istekao. Zatraži novi od osobe koja ga je poslala.",
+      "used": "Ovaj pozivni link je već iskorišćen.",
+      "revoked": "Ovaj pozivni link je opozvan."
+    }
+  },
+  "admin": {
+    "title": "Admin",
+    "subtitle": "Pravi porodice i izdavaj Owner pozivne linkove.",
+    "createFamily": {
+      "label": "Naziv porodice",
+      "submit": "Napravi porodicu",
+      "submitting": "Pravim...",
+      "success": "Porodica napravljena"
+    },
+    "families": {
+      "heading": "Porodice",
+      "empty": "Još nema porodica. Napravi prvu iznad.",
+      "owners": "Owner-i",
+      "members": "Članovi",
+      "generateOwnerInvite": "Generiši Owner poziv",
+      "regenerate": "Regeneriši"
+    },
+    "invite": {
+      "copied": "Link je kopiran",
+      "linkLabel": "URL poziva",
+      "expiresAt": "Ističe {when}",
+      "copy": "Kopiraj",
+      "role": "Rola"
+    }
+  },
+  "settings": {
+    "title": "Podešavanja",
+    "members": {
+      "heading": "Članovi porodice",
+      "generateMemberInvite": "Generiši poziv za člana",
+      "noFamily": "Nisi član porodice."
+    }
   }
 }

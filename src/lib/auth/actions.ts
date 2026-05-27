@@ -3,6 +3,7 @@
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { routing } from '@/i18n/routing';
+import { ensureSuperAdmin } from '@/lib/auth/super-admin';
 import {
   loginSchema,
   newPasswordSchema,
@@ -39,13 +40,17 @@ export async function signUpAction(input: SignUpInput): Promise<AuthResult> {
     return { ok: false, error: 'Username is already taken' };
   }
 
-  const { error } = await supabase.auth.signUp({
+  const { data: signUpData, error } = await supabase.auth.signUp({
     email,
     password,
     options: { data: { username } },
   });
   if (error) {
     return { ok: false, error: error.message };
+  }
+
+  if (signUpData.user) {
+    await ensureSuperAdmin({ userId: signUpData.user.id, email });
   }
 
   return { ok: true };
@@ -58,9 +63,13 @@ export async function loginAction(input: LoginInput, redirectTo?: string): Promi
   }
 
   const supabase = await createClient();
-  const { error } = await supabase.auth.signInWithPassword(parsed.data);
+  const { data: signInData, error } = await supabase.auth.signInWithPassword(parsed.data);
   if (error) {
     return { ok: false, error: error.message };
+  }
+
+  if (signInData.user) {
+    await ensureSuperAdmin({ userId: signInData.user.id, email: signInData.user.email });
   }
 
   redirect(redirectTo && redirectTo.startsWith('/') ? redirectTo : defaultLocalePath('/calendar'));

@@ -75,5 +75,54 @@
     "errors": {
       "generic": "Something went wrong. Please try again."
     }
+  },
+  "invite": {
+    "title": "Join {family}",
+    "subtitle": "You're being added as a {role}. Pick your credentials below.",
+    "role": {
+      "owner": "owner",
+      "member": "member"
+    },
+    "invalidTitle": "This invite link can't be used",
+    "backToLogin": "Back to login",
+    "errors": {
+      "notFound": "We couldn't find that invite. Double-check the link, or ask the person who shared it to generate a new one.",
+      "expired": "This invite link has expired. Ask the person who shared it for a fresh one.",
+      "used": "This invite link has already been used.",
+      "revoked": "This invite link has been revoked."
+    }
+  },
+  "admin": {
+    "title": "Admin",
+    "subtitle": "Create families and issue Owner invite links.",
+    "createFamily": {
+      "label": "Family name",
+      "submit": "Create family",
+      "submitting": "Creating...",
+      "success": "Family created"
+    },
+    "families": {
+      "heading": "Families",
+      "empty": "No families yet. Create the first one above.",
+      "owners": "Owners",
+      "members": "Members",
+      "generateOwnerInvite": "Generate Owner invite",
+      "regenerate": "Regenerate"
+    },
+    "invite": {
+      "copied": "Invite link copied",
+      "linkLabel": "Invite URL",
+      "expiresAt": "Expires {when}",
+      "copy": "Copy",
+      "role": "Role"
+    }
+  },
+  "settings": {
+    "title": "Settings",
+    "members": {
+      "heading": "Family members",
+      "generateMemberInvite": "Generate member invite",
+      "noFamily": "You're not part of a family yet."
+    }
   }
 }

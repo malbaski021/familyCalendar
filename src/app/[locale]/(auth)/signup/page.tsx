@@ -20,7 +20,11 @@ export default async function SignUpPage({ params }: Props) {
       <SignUpForm />
       <p className="text-muted-foreground text-sm">
         {t('signUp.haveAccount')}{' '}
-        <Link href="/login" className="underline-offset-4 hover:underline">
+        <Link
+          href="/login"
+          className="underline-offset-4 hover:underline"
+          data-testid="signup-page-login-link"
+        >
           {t('signUp.loginLink')}
         </Link>
       </p>

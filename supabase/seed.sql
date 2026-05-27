@@ -2,6 +2,9 @@
 -- Run with: supabase db reset
 --
 -- Test password for all accounts: `password123`
+-- The admin row uses the real super-admin email so the
+-- enforce_super_admin trigger (migration 20260527120000_super_admin.sql)
+-- allows the role assignment in step 2 below.
 
 -- ---------------------------------------------------------------------------
 -- 1. Auth users (Supabase Auth) — trigger auto-creates matching public.users
@@ -19,10 +22,10 @@ insert into auth.users (
     '11111111-1111-1111-1111-111111111111',
     '00000000-0000-0000-0000-000000000000',
     'authenticated', 'authenticated',
-    'admin@familycalendar.local',
+    'malbaski.ns@gmail.com',
     crypt('password123', gen_salt('bf')),
     now(),
-    '{"username":"admin"}'::jsonb,
+    '{"username":"malbaski"}'::jsonb,
     '{"provider":"email","providers":["email"]}'::jsonb,
     '', '', '', '', '', '', '', '',
     now(), now()
@@ -73,7 +76,8 @@ select
   jsonb_build_object('sub', u.id::text, 'email', u.email, 'email_verified', true, 'provider', 'email'),
   now(), now(), now()
 from auth.users u
-where u.email like '%@familycalendar.local';
+where u.email like '%@familycalendar.local'
+   or u.email = 'malbaski.ns@gmail.com';
 
 -- ---------------------------------------------------------------------------
 -- 2. Promote first user to admin (others stay as default 'user')

@@ -21,16 +21,16 @@ ruleTester.run('require-data-testid', rule, {
     { code: '<input data-testid="form-email-input" />' },
     // Component (Button) with explicit testid.
     { code: '<Button data-testid="nav-foo">Hi</Button>' },
-    // Spread escape hatch — testid may live inside spread.
-    { code: '<Button {...props}>Hi</Button>' },
-    // asChild is allowed when the parent itself carries the testid (Slot forwards it down).
-    { code: '<Button asChild data-testid="cta"><Link href="/x">x</Link></Button>' },
+    // asChild parent renders nothing of its own; the rule skips it and checks the inner child.
+    { code: '<Button asChild><Link href="/x" data-testid="cta-link">x</Link></Button>' },
     // Anchor without href is not interactive.
     { code: '<a>Just text</a>' },
     // Non-interactive native tags are ignored.
     { code: '<div onClick={() => {}}>Hi</div>' },
-    // Non-listed components are ignored.
+    // Non-listed components without href are ignored.
     { code: '<Card>Hi</Card>' },
+    // Any JSX with href + testid passes — covers next-intl <Link>, next/link, etc.
+    { code: '<Link href="/foo" data-testid="nav-foo-link">x</Link>' },
   ],
   invalid: [
     {
@@ -57,9 +57,19 @@ ruleTester.run('require-data-testid', rule, {
       code: '<form onSubmit={() => {}}>x</form>',
       errors: [{ messageId: 'missing', data: { name: 'form' } }],
     },
-    // asChild without testid on the parent leaves the rendered child untestable.
+    // asChild parent is exempt but the inner interactive child must still carry a testid.
     {
       code: '<Button asChild><Link href="/x">x</Link></Button>',
+      errors: [{ messageId: 'missing', data: { name: 'Link' } }],
+    },
+    // Any component with href is interactive — covers next-intl <Link>, next/link, etc.
+    {
+      code: '<Link href="/foo">x</Link>',
+      errors: [{ messageId: 'missing', data: { name: 'Link' } }],
+    },
+    // Spread alone is no longer an escape hatch — explicit testid still required.
+    {
+      code: '<Button {...props}>Hi</Button>',
       errors: [{ messageId: 'missing', data: { name: 'Button' } }],
     },
   ],

@@ -21,6 +21,7 @@ export default async function ForgotPasswordPage({ params }: Props) {
       <Link
         href="/login"
         className="text-muted-foreground text-sm underline-offset-4 hover:underline"
+        data-testid="forgot-password-page-login-link"
       >
         {t('forgotPassword.backToLogin')}
       </Link>

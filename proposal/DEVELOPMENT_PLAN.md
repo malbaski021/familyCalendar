@@ -162,24 +162,34 @@
 
 ---
 
-## F3 — Invite flow
+## F3 — Invite flow ✅ Završeno (2026-05-27)
 
 **Cilj:** Sva registracija ide isključivo kroz invite linkove. Admin pravi Owner-a, Owner pravi Member-a.
 
-- [ ] Admin panel (minimalan): "Create new calendar" → kreira `families` zapis
-- [ ] Admin generiše Owner invite link (`/invite/owner/<family-slug>-<nanoid>`)
-- [ ] Slug helper: `slugify(family_name)` + nanoid suffix
-- [ ] Owner: Settings → "Generate member invite link"
-- [ ] Member invite link (`/invite/member/<family-slug>-<nanoid>`)
-- [ ] Stranica `/invite/[role]/[token]` — validira token, prikazuje registracionu formu
-- [ ] Token: single-use (`used_at` set odmah po uspešnoj registraciji)
-- [ ] Token: 48h expiry validacija
-- [ ] Po registraciji, automatski dodeli rolu i upiši u `family_members`
-- [ ] Owner može da regeneriše link (invalidira stari, pravi novi)
-- [ ] Greška za istekao/iskorišćen link sa jasnom porukom
-- [ ] Audit log: `invite_link_used`
+- [x] Admin panel (minimalan): "Create new calendar" → kreira `families` zapis _(`/admin` ruta)_
+- [x] Admin generiše Owner invite link (`/invite/owner/<family-slug>-<nanoid>`)
+- [x] Slug helper: `slugify(family_name)` + nanoid suffix _(`src/lib/family/slugify.ts`, mapira srpske dijakritike; nanoid 12-char custom alphabet)_
+- [x] Owner: Settings → "Generate member invite link" _(`/settings` ruta)_
+- [x] Member invite link (`/invite/member/<family-slug>-<nanoid>`)
+- [x] Stranica `/invite/[role]/[token]` — validira token, prikazuje registracionu formu
+- [x] Token: single-use (`used_at` set odmah po uspešnoj registraciji)
+- [x] Token: 48h expiry validacija
+- [x] Po registraciji, automatski dodeli rolu i upiši u `family_members`
+- [x] Owner može da regeneriše link (invalidira stari, pravi novi)
+- [x] Greška za istekao/iskorišćen link sa jasnom porukom _(invite/[role]/[token] page renderuje `errors.used | expired | revoked | notFound` ovisno o validaciji)_
+- [x] Audit log: `invite_link.generated`, `invite_link.used`, `invite_link.regenerated`, `family.created`
 
-**Kriterijum prihvatanja:** Pun ciklus Admin → Owner → Member kroz linkove radi end-to-end. Istekli linkovi pokazuju jasnu poruku.
+**Dodato preko prvobitnog plana:**
+
+- [x] **Super-admin enforcement** — DB trigger `users_enforce_super_admin` (migracija `20260527120000_super_admin.sql`) garantuje da `role='admin'` može da ima jedino email `malbaski.ns@gmail.com` i isključivo jedan korisnik
+- [x] `ensureSuperAdmin()` helper auto-promoviše super-admin email pri svakom signUp/login (idempotentno, koristi service-role klijent jer RLS blokira self-role-change)
+- [x] Service-role Supabase klijent (`src/lib/supabase/service.ts`) za operacije pre nego što korisnik ima sesiju (validacija + prihvatanje invite-a, audit upisi)
+- [x] Audit helper (`src/lib/audit/log.ts`) — fail-safe (logging greška ne lomi user action)
+- [x] InviteLinkCard zajednička komponenta deli flow između admin panela (owner invites) i settings stranice (member invites)
+- [x] Integration testovi (`src/test/integration/invites.test.ts`) — 8 slučajeva: super-admin singleton, validacija, expiry, revoke, optimistic-lock consume, idempotentni double-consume, nepoznat token
+- [x] Seed.sql ažuriran — admin user koristi pravi super-admin email da prođe trigger
+
+**Kriterijum prihvatanja:** Pun ciklus Admin → Owner → Member kroz linkove radi end-to-end ✓ (manuelno verifikovano). Istekli linkovi pokazuju jasnu poruku ✓. 34/34 integration testa prolazi ✓.
 
 ---
 
