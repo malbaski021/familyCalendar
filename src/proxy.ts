@@ -8,7 +8,7 @@ const intlMiddleware = createIntlMiddleware(routing);
 // Routes that require an authenticated user. Paths are checked AFTER the
 // locale prefix has been stripped (e.g. `/en/calendar` is matched as
 // `/calendar`).
-const PROTECTED_PATHS = ['/calendar', '/settings', '/admin', '/onboarding'];
+const PROTECTED_PATHS = ['/calendar', '/settings', '/admin', '/onboarding', '/profile'];
 
 // Routes that should redirect to /calendar when the user is already signed in
 // (logged-in users should not see login forms again).

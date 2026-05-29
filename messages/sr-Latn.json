@@ -134,6 +134,28 @@
       "relaunching": "Pokrećem..."
     }
   },
+  "calendar": {
+    "prev": "Prethodno",
+    "next": "Sledeće",
+    "today": "Danas",
+    "viewSwitcher": "Prikaz kalendara",
+    "openDay": "Otvori {date}",
+    "allDay": "Ceo dan",
+    "scheduled": "Po satnici",
+    "noFamily": "Pridruži se porodici ili je napravi da vidiš kalendar.",
+    "views": {
+      "month": "Mesec",
+      "week": "Nedelja",
+      "day": "Dan"
+    },
+    "empty": {
+      "day": "Ovog dana još nema događaja."
+    },
+    "addPlaceholder": {
+      "title": "Dodaj događaj",
+      "body": "Kreiranje događaja dolazi u F6. Uskoro."
+    }
+  },
   "children": {
     "placeholder": "Ime deteta",
     "add": "Dodaj",

@@ -219,22 +219,31 @@
 
 ---
 
-## F5 — Calendar views
+## F5 — Calendar views ✅ Završeno (2026-05-29)
 
 **Cilj:** Vizuelno jezgro aplikacije — mesečni, nedeljni i dnevni prikaz, sa mobile-first navigacijom.
 
-- [ ] Bottom navigation bar (Calendar / Add / Profile) — mobile
-- [ ] Top navigation za desktop (isto ali horizontalno)
-- [ ] Monthly view (default) — grid sa svim događajima u danu
-- [ ] Weekly view — sa hourly timeline
-- [ ] Daily view — pun detalj jednog dana
-- [ ] Tap na dan u Monthly (mobile) otvara Daily
-- [ ] Switch između view-ova
-- [ ] Navigacija napred/nazad po mesecima/nedeljama/danima
-- [ ] Loading skeleton za fetch-ove
-- [ ] Empty state ("No events this month")
+- [x] Bottom navigation bar (Calendar / Add / Profile) — mobile _(BottomNav, `md:hidden`, fiksiran na dnu)_
+- [x] Top navigation za desktop (isto ali horizontalno) _(TopNav, `hidden md:flex`, plus theme/language/logout)_
+- [x] Monthly view (default) — grid sa svim događajima u danu _(7×6 grid sa multi-day expansion, prikazuje do 3 događaja po danu + "+N" indikator)_
+- [x] Weekly view — sa hourly timeline _(Mon..Sun kolone, satni redovi 00-23, all-day band na vrhu)_
+- [x] Daily view — pun detalj jednog dana _(all-day + scheduled sekcije, lokacija + napomene)_
+- [x] Tap na dan u Monthly (mobile) otvara Daily _(button cell sa `router.replace` → view=day)_
+- [x] Switch između view-ova _(view switcher u CalendarNav-u, URL-driven `?view=month|week|day`)_
+- [x] Navigacija napred/nazad po mesecima/nedeljama/danima _(prev/next + Today, koristi `stepAnchor()` helper)_
+- [x] Loading skeleton za fetch-ove _(CalendarSkeleton kroz `<Suspense>`)_
+- [x] Empty state _(`empty.day` poruka za dnevni prikaz, `noFamily` poruka kad nije član porodice)_
 
-**Kriterijum prihvatanja:** Tri view-a rade, prebacivanje je glatko na mobile i desktop, navigacija radi u oba smera.
+**Dodato preko prvobitnog plana:**
+
+- [x] **URL-driven state** — `view` i `date` u query params; share/back/forward rade bez ručnog koda
+- [x] `src/lib/calendar/view.ts` — pure helpers: `parseView`, `parseDate`, `rangeForView`, `stepAnchor`, `formatDateParam`, sa unit testovima
+- [x] `src/lib/calendar/query.ts` — `loadEventsInRange` server fetch sa overlap logikom za multi-day događaje
+- [x] `src/lib/calendar/categories.ts` — emoji + Tailwind chip stilovi po kategoriji (6 enum vrednosti)
+- [x] Placeholder rute `/calendar/add` (F6) i `/profile` (→ redirect na `/settings`) — bottom nav linkovi rade
+- [x] `date-fns` 4.x dodat kao dependency
+
+**Kriterijum prihvatanja:** Tri view-a rade ✓, prebacivanje je glatko na mobile i desktop ✓ (URL nav + view switcher), navigacija radi u oba smera ✓ (Today dugme + prev/next). 51/51 unit testova prolazi.
 
 ---
 

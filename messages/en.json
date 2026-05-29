@@ -134,6 +134,28 @@
       "relaunching": "Relaunching..."
     }
   },
+  "calendar": {
+    "prev": "Previous",
+    "next": "Next",
+    "today": "Today",
+    "viewSwitcher": "Calendar view",
+    "openDay": "Open {date}",
+    "allDay": "All day",
+    "scheduled": "Scheduled",
+    "noFamily": "Join or create a family to see its calendar.",
+    "views": {
+      "month": "Month",
+      "week": "Week",
+      "day": "Day"
+    },
+    "empty": {
+      "day": "Nothing on the schedule for this day yet."
+    },
+    "addPlaceholder": {
+      "title": "Add event",
+      "body": "Event creation lands in F6. Coming soon."
+    }
+  },
   "children": {
     "placeholder": "Child's name",
     "add": "Add",
