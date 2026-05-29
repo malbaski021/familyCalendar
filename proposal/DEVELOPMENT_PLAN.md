@@ -193,19 +193,29 @@
 
 ---
 
-## F4 — Family, deca i onboarding
+## F4 — Family, deca i onboarding ✅ Završeno (2026-05-29)
 
 **Cilj:** Posle prve registracije korisnik prolazi kroz 3-ekrana onboarding i može da dodaje decu.
 
-- [ ] Settings sekcija "Children" — CRUD za listu dece
-- [ ] Onboarding ekran 1: Welcome (nije skippable)
-- [ ] Onboarding ekran 2: Add children (skippable)
-- [ ] Onboarding ekran 3: Notifications permission (skippable)
-- [ ] Detekcija "first login" → automatski pokreće onboarding
-- [ ] Settings → "Relaunch onboarding"
-- [ ] Audit log za promene na listi dece
+- [x] Settings sekcija "Children" — CRUD za listu dece _(server actions add/rename/remove + ChildrenManager komponenta)_
+- [x] Onboarding ekran 1: Welcome (nije skippable) _(Continue jedino dugme)_
+- [x] Onboarding ekran 2: Add children (skippable) _(deli ChildrenManager komponentu sa Settings)_
+- [x] Onboarding ekran 3: Notifications permission (skippable) _(poziva Notification.requestPermission(), F10 wires real push)_
+- [x] Detekcija "first login" → automatski pokreće onboarding _(`requireOnboardedUser` guard preusmerava ako `users.onboarded_at IS NULL` i user ima family)_
+- [x] Settings → "Relaunch onboarding" _(server action briše onboarded_at i preusmerava na `/onboarding`)_
+- [x] Audit log za promene na listi dece _(`child.added`, `child.renamed`, `child.removed`, plus `onboarding.completed` i `onboarding.relaunched`)_
 
-**Kriterijum prihvatanja:** Novi korisnik vidi onboarding samo prvi put, može kasnije da ga relaunch-uje, deca se mogu dodati/preimenovati/obrisati.
+**Dodato preko prvobitnog plana:**
+
+- [x] DB migracija `20260529100000_onboarding_completed.sql` — `users.onboarded_at timestamptz` kolona + parcijalni indeks za `IS NULL` brze pretrage
+- [x] `requireOnboardedUser(locale)` guard u `src/lib/auth/guards.ts` — koristi se u `/calendar` i `/settings`. Admin korisnici (bez porodice) prolaze bez onboarding-a.
+- [x] `getFamilyContextFor(userId)` helper (`src/lib/family/get-family-context.ts`) — deterministicki dohvata prvu porodicu za korisnika, koristi se i u settings i u guard-u
+- [x] Server actions koriste service-role klijent za `onboarded_at` (RLS blokira self-update sistemskih kolona)
+- [x] ChildrenManager je jedna komponenta korišćena u dve lokacije (onboarding step 2 + settings) — sva CRUD logika centralizovana
+- [x] Integration testovi (`src/test/integration/children-onboarding.test.ts`, 6 slučajeva) — CRUD nad children + onboarded_at lifecycle (default null, completion, relaunch)
+- [x] i18n stringovi za `children`, `onboarding`, `settings.childrenSection`, `settings.onboarding` namespace-ove
+
+**Kriterijum prihvatanja:** Novi korisnik vidi onboarding samo prvi put ✓ (admin se preskače), može kasnije da ga relaunch-uje kroz Settings ✓, deca se mogu dodati/preimenovati/obrisati ✓. 40/40 integration + 47/47 unit testova prolazi.
 
 ---
 

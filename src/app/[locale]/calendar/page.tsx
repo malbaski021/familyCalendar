@@ -1,6 +1,6 @@
 import { useTranslations } from 'next-intl';
 import { setRequestLocale } from 'next-intl/server';
-import { requireCurrentUser } from '@/lib/auth/get-current-user';
+import { requireOnboardedUser } from '@/lib/auth/guards';
 import { LogoutButton } from '@/components/auth/logout-button';
 
 type Props = {
@@ -10,7 +10,7 @@ type Props = {
 export default async function CalendarPage({ params }: Props) {
   const { locale } = await params;
   setRequestLocale(locale);
-  const user = await requireCurrentUser();
+  const user = await requireOnboardedUser(locale);
   return <CalendarView username={user.profile.username} />;
 }
 

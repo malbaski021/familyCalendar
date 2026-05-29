@@ -1,8 +1,10 @@
 import { getTranslations, setRequestLocale } from 'next-intl/server';
-import { redirect } from '@/i18n/navigation';
+import { requireOnboardedUser } from '@/lib/auth/guards';
 import { createClient } from '@/lib/supabase/server';
-import { getCurrentUser } from '@/lib/auth/get-current-user';
+import { getFamilyContextFor } from '@/lib/family/get-family-context';
 import { InviteLinkCard } from '@/components/admin/invite-link-card';
+import { ChildrenManager } from '@/components/family/children-manager';
+import { RelaunchOnboardingButton } from '@/components/onboarding/relaunch-button';
 
 type Props = {
   params: Promise<{ locale: string }>;
@@ -12,22 +14,23 @@ export default async function SettingsPage({ params }: Props) {
   const { locale } = await params;
   setRequestLocale(locale);
 
-  const user = await getCurrentUser();
-  if (!user) {
-    redirect({ href: '/login', locale });
-    return null;
-  }
+  const user = await requireOnboardedUser(locale);
 
   const t = await getTranslations({ locale, namespace: 'settings' });
   const tMembers = await getTranslations({ locale, namespace: 'settings.members' });
+  const tChildren = await getTranslations({ locale, namespace: 'settings.childrenSection' });
+  const tOnboarding = await getTranslations({ locale, namespace: 'settings.onboarding' });
+
+  const family = await getFamilyContextFor(user.authId);
 
   const supabase = await createClient();
-  const { data: ownerMembership } = await supabase
-    .from('family_members')
-    .select('family_id, families!inner(name, slug)')
-    .eq('user_id', user.authId)
-    .eq('role', 'owner')
-    .maybeSingle();
+  const { data: children } = family
+    ? await supabase
+        .from('children')
+        .select('id, name')
+        .eq('family_id', family.familyId)
+        .order('created_at', { ascending: true })
+    : { data: [] };
 
   return (
     <div className="mx-auto flex w-full max-w-2xl flex-col gap-8 p-6">
@@ -37,18 +40,31 @@ export default async function SettingsPage({ params }: Props) {
 
       <section className="space-y-3">
         <h2 className="text-lg font-medium">{tMembers('heading')}</h2>
-        {!ownerMembership ? (
+        {!family || family.role !== 'owner' ? (
           <p className="text-muted-foreground text-sm">{tMembers('noFamily')}</p>
         ) : (
           <div className="grid gap-3 rounded-lg border p-4">
-            <p className="font-medium">{ownerMembership.families.name}</p>
+            <p className="font-medium">{family.familyName}</p>
             <InviteLinkCard
-              familyId={ownerMembership.family_id}
+              familyId={family.familyId}
               mode="member"
-              testIdPrefix={`settings-family-${ownerMembership.families.slug}`}
+              testIdPrefix={`settings-family-${family.familySlug}`}
             />
           </div>
         )}
+      </section>
+
+      {family && (
+        <section className="space-y-3">
+          <h2 className="text-lg font-medium">{tChildren('heading')}</h2>
+          <ChildrenManager initial={children ?? []} testIdPrefix="settings-children" />
+        </section>
+      )}
+
+      <section className="space-y-3">
+        <h2 className="text-lg font-medium">{tOnboarding('heading')}</h2>
+        <p className="text-muted-foreground text-sm">{tOnboarding('description')}</p>
+        <RelaunchOnboardingButton />
       </section>
     </div>
   );

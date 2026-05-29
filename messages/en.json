@@ -123,6 +123,52 @@
       "heading": "Family members",
       "generateMemberInvite": "Generate member invite",
       "noFamily": "You're not part of a family yet."
+    },
+    "childrenSection": {
+      "heading": "Children"
+    },
+    "onboarding": {
+      "heading": "Onboarding",
+      "description": "Walk through the welcome screens again.",
+      "relaunch": "Relaunch onboarding",
+      "relaunching": "Relaunching..."
+    }
+  },
+  "children": {
+    "placeholder": "Child's name",
+    "add": "Add",
+    "empty": "No children added yet.",
+    "rename": "Rename",
+    "remove": "Remove",
+    "save": "Save",
+    "cancel": "Cancel"
+  },
+  "onboarding": {
+    "progress": "Step {current} of {total}",
+    "continue": "Continue",
+    "skip": "Skip",
+    "finish": "Finish",
+    "finishing": "Finishing...",
+    "step1": {
+      "title": "Welcome",
+      "subtitle": "Let's get your family calendar set up.",
+      "body": "Hi {username} — in a few short steps you'll be ready to plan together."
+    },
+    "step2": {
+      "title": "Add your children",
+      "subtitle": "Optional. You can change this later in Settings."
+    },
+    "step3": {
+      "title": "Notifications",
+      "subtitle": "Allow notifications so we can remind you about events.",
+      "enable": "Enable notifications",
+      "deniedHint": "You blocked notifications. You can turn them on later from your browser settings.",
+      "status": {
+        "default": "Notification permission was not granted.",
+        "granted": "Notifications are enabled.",
+        "denied": "Notifications are blocked. Enable them in your browser settings.",
+        "unsupported": "This browser does not support notifications."
+      }
     }
   }
 }

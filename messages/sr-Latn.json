@@ -123,6 +123,52 @@
       "heading": "Članovi porodice",
       "generateMemberInvite": "Generiši poziv za člana",
       "noFamily": "Nisi član porodice."
+    },
+    "childrenSection": {
+      "heading": "Deca"
+    },
+    "onboarding": {
+      "heading": "Onboarding",
+      "description": "Ponovi uvodne ekrane.",
+      "relaunch": "Pokreni onboarding ponovo",
+      "relaunching": "Pokrećem..."
+    }
+  },
+  "children": {
+    "placeholder": "Ime deteta",
+    "add": "Dodaj",
+    "empty": "Još nije dodato nijedno dete.",
+    "rename": "Preimenuj",
+    "remove": "Obriši",
+    "save": "Sačuvaj",
+    "cancel": "Otkaži"
+  },
+  "onboarding": {
+    "progress": "Korak {current} od {total}",
+    "continue": "Dalje",
+    "skip": "Preskoči",
+    "finish": "Završi",
+    "finishing": "Završavam...",
+    "step1": {
+      "title": "Dobrodošli",
+      "subtitle": "Postavimo porodični kalendar.",
+      "body": "Zdravo {username} — kroz nekoliko koraka spreman si da planiraš sa porodicom."
+    },
+    "step2": {
+      "title": "Dodaj decu",
+      "subtitle": "Opciono. Možeš kasnije promeniti u Podešavanjima."
+    },
+    "step3": {
+      "title": "Notifikacije",
+      "subtitle": "Dozvoli notifikacije da bismo te podsetili na događaje.",
+      "enable": "Omogući notifikacije",
+      "deniedHint": "Blokirao si notifikacije. Možeš ih kasnije uključiti kroz podešavanja pregledača.",
+      "status": {
+        "default": "Dozvola nije data.",
+        "granted": "Notifikacije su uključene.",
+        "denied": "Notifikacije su blokirane. Uključi ih u podešavanjima pregledača.",
+        "unsupported": "Ovaj pregledač ne podržava notifikacije."
+      }
     }
   }
 }
