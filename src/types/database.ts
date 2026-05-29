@@ -655,6 +655,7 @@ export type Database = {
           created_at: string;
           id: string;
           language: string;
+          onboarded_at: string | null;
           role: Database['public']['Enums']['user_role'];
           status: Database['public']['Enums']['user_status'];
           updated_at: string;
@@ -665,6 +666,7 @@ export type Database = {
           created_at?: string;
           id: string;
           language?: string;
+          onboarded_at?: string | null;
           role?: Database['public']['Enums']['user_role'];
           status?: Database['public']['Enums']['user_status'];
           updated_at?: string;
@@ -675,6 +677,7 @@ export type Database = {
           created_at?: string;
           id?: string;
           language?: string;
+          onboarded_at?: string | null;
           role?: Database['public']['Enums']['user_role'];
           status?: Database['public']['Enums']['user_status'];
           updated_at?: string;
