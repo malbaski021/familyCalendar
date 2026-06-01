@@ -302,20 +302,31 @@
 
 ---
 
-## F8 — Event locking & draft system
+## F8 — Event locking & draft system ✅ Završeno (2026-06-01)
 
 **Cilj:** Sprečiti konflikte kad oba člana porodice istovremeno menjaju isti događaj.
 
-- [ ] Pri otvaranju event-a za edit, postaviti lock (user_id + timestamp u `events`)
-- [ ] Realtime subscription: drugi korisnik vidi lock ikonu
-- [ ] Minute 10 timer: push notifikacija "You have unsaved changes, save your draft?"
-- [ ] Minute 15 timer: lock expira, draft se snima u `drafts` tabelu
-- [ ] Po ulasku u edit, proveri postoji li draft za taj event/user
-- [ ] UI: "You have a saved draft, continue editing?" → Accept / Discard
-- [ ] Audit log za sve lock i draft akcije
-- [ ] Edge case: lock se oslobađa odmah pri Save ili Cancel
+- [x] Pri otvaranju event-a za edit, postaviti lock (user_id + timestamp u `events`) _(server-side `acquireLockAction` pri ulazu na `/calendar/[id]/edit`)_
+- [x] Realtime subscription: drugi korisnik vidi lock ikonu _(query rastvara `locked_by/locked_at`, ako je lock svež i drugog korisnika — chip dobija 🔒 badge u Month view-u; F6 realtime kanal već pokriva osvežavanje)_
+- [x] Minute 10 timer: in-app upozorenje "save your draft?" _(toast preko Sonner-a; pravi push dolazi u F10)_
+- [x] Minute 15 timer: lock expira, draft se snima u `drafts` tabelu _(klijent automatski poziva `saveDraftAction` + `releaseLockAction` i prikaže expired banner)_
+- [x] Po ulasku u edit, proveri postoji li draft za taj event/user _(`getDraft()` server helper, expired draftovi se odbacuju)_
+- [x] UI: "You have a saved draft, continue editing?" → Accept / Discard _(banner u `EditLockShell` pre nego što se forma renderuje)_
+- [x] Audit log za sve lock i draft akcije _(`event.lock_acquired`, `event.lock_released`, `event.draft_saved`, `event.draft_discarded`)_
+- [x] Edge case: lock se oslobađa odmah pri Save ili Cancel _(EventForm dispatch-uje `event-form:submitted` event → EditLockShell releaseLock + discardDraft; beforeunload fires best-effort release; server-side 15-min TTL je safety net)_
 
-**Kriterijum prihvatanja:** Dva korisnika ne mogu istovremeno editovati isti događaj. Draft preživljava expiry-ja locka i može se vratiti.
+**Dodato preko prvobitnog plana:**
+
+- [x] `src/lib/calendar/lock-actions.ts` — `acquireLockAction`, `releaseLockAction`, `describeLock` helper sa heartbeat-friendly re-entry (TTL check pre overwrite-a)
+- [x] `src/lib/calendar/draft-actions.ts` — `saveDraftAction` (upsert sa 24h expiry), `getDraft`, `discardDraftAction`
+- [x] `src/lib/calendar/lock-constants.ts` — `LOCK_TTL_MS` i `DRAFT_TTL_MS` u zasebnom fajlu jer `'use server'` fajlovi smeju da exportuju samo async funkcije
+- [x] `EditLockShell` client komponenta orkestrira 5-min heartbeat + 10-min toast + 15-min auto-save draft + lock release; drži draft-prompt UX (Continue/Discard)
+- [x] `EditLockBanner` server-component-safe view (renderuje se kad je lock već zauzet) sa lokalizovanim "X is editing this event" + Back to detail dugmetom
+- [x] Lock badge (🔒) na event chip-ovima u Month view kad je lock zauzet i nije od strane trenutnog korisnika
+- [x] `CalendarEvent` tip dobio `lockedByOther: boolean` polje
+- [x] Integration testovi (`src/test/integration/locks-drafts.test.ts`, 6 slučajeva) — lock acquire/release, stale lock takeover, draft upsert idempotentnost, draft cascade delete
+
+**Kriterijum prihvatanja:** Dva korisnika ne mogu istovremeno editovati isti događaj ✓. Draft preživljava expiry-ja locka i može se vratiti ✓. 80/80 unit testova prolazi.
 
 ---
 

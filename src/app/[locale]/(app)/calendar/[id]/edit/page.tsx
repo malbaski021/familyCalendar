@@ -4,9 +4,13 @@ import { redirect } from '@/i18n/navigation';
 import { requireOnboardedUser } from '@/lib/auth/guards';
 import { createClient } from '@/lib/supabase/server';
 import { getFamilyContextFor } from '@/lib/family/get-family-context';
-import { EventForm } from '@/components/calendar/event-form';
+import { acquireLockAction, describeLock } from '@/lib/calendar/lock-actions';
+import { getDraft } from '@/lib/calendar/draft-actions';
+import { EditLockShell } from '@/components/calendar/edit-lock-shell';
+import { EditLockBanner } from '@/components/calendar/edit-lock-banner';
 import { BackLink } from '@/components/nav/back-link';
 import type { EventCategory } from '@/lib/calendar/query';
+import type { EventInput } from '@/lib/calendar/event-schema';
 
 type Props = {
   params: Promise<{ locale: string; id: string }>;
@@ -35,11 +39,33 @@ export default async function EditEventPage({ params }: Props) {
 
   if (!event) notFound();
 
+  // Try to take the lock. If someone else holds it, fall through to the
+  // read-only banner; otherwise we own it for the next 15 minutes.
+  const lockAttempt = await acquireLockAction(event.id);
+  const lockState = lockAttempt.ok ? null : (lockAttempt.state ?? (await describeLock(event.id)));
+
   const { data: children } = await supabase
     .from('children')
     .select('id, name')
     .eq('family_id', family.familyId)
     .order('created_at', { ascending: true });
+
+  const cleanValues: EventInput = {
+    title: event.title,
+    category: event.category as EventCategory,
+    startDate: event.start_date,
+    endDate: event.end_date,
+    startTime: event.start_time ? event.start_time.slice(0, 5) : null,
+    endTime: event.end_time ? event.end_time.slice(0, 5) : null,
+    location: event.location,
+    notes: event.notes,
+    allDay: !event.start_time,
+    childIds: (event.event_children ?? []).map((ec) => ec.child_id),
+    recurrence: event.recurring_pattern ?? 'none',
+    recurringEndDate: event.recurring_end_date,
+  };
+
+  const draft = lockAttempt.ok ? await getDraft(event.id) : null;
 
   const t = await getTranslations({ locale, namespace: 'events' });
 
@@ -53,25 +79,22 @@ export default async function EditEventPage({ params }: Props) {
       <header>
         <h1 className="text-2xl font-semibold tracking-tight">{t('editTitle')}</h1>
       </header>
-      <EventForm
-        mode="edit"
-        eventId={event.id}
-        initial={{
-          title: event.title,
-          category: event.category as EventCategory,
-          startDate: event.start_date,
-          endDate: event.end_date,
-          startTime: event.start_time ? event.start_time.slice(0, 5) : null,
-          endTime: event.end_time ? event.end_time.slice(0, 5) : null,
-          location: event.location,
-          notes: event.notes,
-          allDay: !event.start_time,
-          childIds: (event.event_children ?? []).map((ec) => ec.child_id),
-          recurrence: event.recurring_pattern ?? 'none',
-          recurringEndDate: event.recurring_end_date,
-        }}
-        familyChildren={children ?? []}
-      />
+      {!lockAttempt.ok ? (
+        <EditLockBanner
+          eventId={event.id}
+          lockedByUsername={lockState?.lockedByUsername ?? null}
+          lockedAt={lockState?.lockedAt ?? null}
+        />
+      ) : (
+        <EditLockShell
+          eventId={event.id}
+          initial={cleanValues}
+          familyChildren={children ?? []}
+          hasDraft={draft !== null}
+          draftValues={draft?.draftData ?? null}
+          cleanValues={cleanValues}
+        />
+      )}
     </div>
   );
 }

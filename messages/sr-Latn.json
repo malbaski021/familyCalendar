@@ -211,7 +211,24 @@
       "deleteSeries": "Obriši celu seriju",
       "deleteSeriesConfirm": "Obrisati celu seriju? Sve pojave će biti uklonjene."
     },
-    "seriesBadge": "Ponavlja se"
+    "seriesBadge": "Ponavlja se",
+    "lock": {
+      "lockedTitle": "{user} trenutno edituje ovaj događaj",
+      "lockedFallback": "Neko drugi",
+      "lockedSince": "Zaključano {when}",
+      "lockedHint": "Vrati se kad završe.",
+      "backToDetail": "Nazad na događaj"
+    },
+    "draft": {
+      "softWarn": "Editujem već 10 minuta — sačuvaj uskoro da ne izgubiš izmene.",
+      "expired": "Sesija je istekla i draft je sačuvan.",
+      "expiredTitle": "Sesija editovanja je istekla",
+      "expiredBody": "Sačuvali smo tvoje izmene kao draft. Otvori događaj ponovo da nastaviš.",
+      "promptTitle": "Imaš nesačuvan draft",
+      "promptBody": "Nastavi gde si stao ili odbaci draft.",
+      "restore": "Nastavi draft",
+      "discard": "Odbaci draft"
+    }
   },
   "children": {
     "placeholder": "Ime deteta",
