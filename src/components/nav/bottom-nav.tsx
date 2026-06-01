@@ -1,32 +1,51 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import { CalendarDaysIcon, PlusCircleIcon, UserCircleIcon } from 'lucide-react';
+import { CalendarDaysIcon, PlusCircleIcon, UserCircleIcon, ShieldCheckIcon } from 'lucide-react';
 import { Link, usePathname } from '@/i18n/navigation';
 import { cn } from '@/lib/utils';
 
-const ITEMS = [
+const BASE_ITEMS = [
   { key: 'calendar', href: '/calendar', icon: CalendarDaysIcon, labelKey: 'calendar' as const },
   { key: 'add', href: '/calendar/add', icon: PlusCircleIcon, labelKey: 'add' as const },
   { key: 'profile', href: '/profile', icon: UserCircleIcon, labelKey: 'profile' as const },
 ];
 
+const ADMIN_ITEM = {
+  key: 'admin',
+  href: '/admin',
+  icon: ShieldCheckIcon,
+  labelKey: 'admin' as const,
+};
+
+interface Props {
+  /** Show the Admin entry when the rendering user is the super-admin. */
+  isAdmin?: boolean;
+}
+
 /**
  * Mobile-first bottom dock. Hidden on screens ≥ md so desktops only see the
  * top nav. The "Add" item points at `/calendar/add` which is a placeholder
- * until F6 wires real event creation.
+ * until F6 wires real event creation. The Admin entry is appended only for
+ * the super-admin so the regular grid stays 3-wide.
  */
-export function BottomNav() {
+export function BottomNav({ isAdmin = false }: Props) {
   const t = useTranslations('nav');
   const pathname = usePathname();
+
+  const items = isAdmin ? [...BASE_ITEMS, ADMIN_ITEM] : BASE_ITEMS;
+  const gridCols = isAdmin ? 'grid-cols-4' : 'grid-cols-3';
 
   return (
     <nav
       aria-label="Primary"
-      className="bg-background fixed inset-x-0 bottom-0 z-40 grid grid-cols-3 border-t md:hidden"
+      className={cn(
+        'bg-background fixed inset-x-0 bottom-0 z-40 grid border-t md:hidden',
+        gridCols,
+      )}
       data-testid="bottom-nav"
     >
-      {ITEMS.map((item) => {
+      {items.map((item) => {
         const Icon = item.icon;
         const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
         return (

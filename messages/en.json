@@ -20,7 +20,8 @@
     "settings": "Settings",
     "language": "Language",
     "languageEn": "English",
-    "languageSrLatn": "Srpski (latinica)"
+    "languageSrLatn": "Srpski (latinica)",
+    "admin": "Admin"
   },
   "home": {
     "welcome": "Welcome to Family Calendar",
@@ -154,6 +155,42 @@
     "addPlaceholder": {
       "title": "Add event",
       "body": "Event creation lands in F6. Coming soon."
+    }
+  },
+  "events": {
+    "createTitle": "Add event",
+    "editTitle": "Edit event",
+    "edit": "Edit",
+    "delete": "Delete",
+    "deleting": "Deleting...",
+    "deleted": "Event deleted",
+    "confirmDelete": "Delete this event? This cannot be undone.",
+    "categories": {
+      "birthday": "Birthday",
+      "performance": "Performance",
+      "match": "Match",
+      "school": "School",
+      "doctor": "Doctor",
+      "other": "Other"
+    },
+    "form": {
+      "title": "Title",
+      "category": "Category",
+      "allDay": "All-day event",
+      "startDate": "Start date",
+      "endDate": "End date",
+      "startTime": "Start time",
+      "endTime": "End time",
+      "time": "Time",
+      "location": "Location",
+      "notes": "Notes",
+      "children": "Tagged children",
+      "create": "Create event",
+      "save": "Save changes",
+      "submitting": "Saving...",
+      "cancel": "Cancel",
+      "created": "Event created",
+      "updated": "Event updated"
     }
   },
   "children": {

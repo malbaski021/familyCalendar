@@ -12,6 +12,7 @@ import { WeekView } from '@/components/calendar/week-view';
 import { DayView } from '@/components/calendar/day-view';
 import { TopNav } from '@/components/nav/top-nav';
 import { BottomNav } from '@/components/nav/bottom-nav';
+import { RealtimeEvents } from '@/components/calendar/realtime-events';
 
 type Props = {
   params: Promise<{ locale: string }>;
@@ -33,18 +34,21 @@ export default async function CalendarPage({ params, searchParams }: Props) {
 
   return (
     <div className="flex min-h-screen flex-col pb-16 md:pb-0">
-      <TopNav />
+      <TopNav isAdmin={user.profile.role === 'admin'} />
       <CalendarNav view={view} anchor={anchor} title={title} />
       <main className="flex-1">
         {!family ? (
           <NoFamily locale={locale} />
         ) : (
-          <Suspense fallback={<CalendarSkeleton />}>
-            <CalendarBody view={view} anchor={anchor} range={range} familyId={family.familyId} />
-          </Suspense>
+          <>
+            <RealtimeEvents familyId={family.familyId} />
+            <Suspense fallback={<CalendarSkeleton />}>
+              <CalendarBody view={view} anchor={anchor} range={range} familyId={family.familyId} />
+            </Suspense>
+          </>
         )}
       </main>
-      <BottomNav />
+      <BottomNav isAdmin={user.profile.role === 'admin'} />
     </div>
   );
 }
