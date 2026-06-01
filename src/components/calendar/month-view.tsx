@@ -78,6 +78,7 @@ export function MonthView({ range, anchor, events }: Props) {
                     )}
                     data-testid={`calendar-month-event-${e.id}-${e.occurrenceDate}-link`}
                   >
+                    {e.lockedByOther && <span aria-label="locked">🔒</span>}
                     <span aria-hidden="true">{style.emoji}</span>
                     <span className="truncate">{e.title}</span>
                   </Link>

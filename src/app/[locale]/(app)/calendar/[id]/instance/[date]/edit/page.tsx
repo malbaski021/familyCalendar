@@ -5,6 +5,7 @@ import { requireOnboardedUser } from '@/lib/auth/guards';
 import { createClient } from '@/lib/supabase/server';
 import { getFamilyContextFor } from '@/lib/family/get-family-context';
 import { InstanceOverrideForm } from '@/components/calendar/instance-override-form';
+import { BackLink } from '@/components/nav/back-link';
 
 type Props = {
   params: Promise<{ locale: string; id: string; date: string }>;
@@ -45,6 +46,11 @@ export default async function EditInstancePage({ params }: Props) {
 
   return (
     <div className="mx-auto flex w-full max-w-xl flex-1 flex-col gap-6 p-6">
+      <BackLink
+        href={`/calendar/${event.id}?date=${date}`}
+        label={event.title}
+        data-testid="instance-edit-back-link"
+      />
       <header className="space-y-1">
         <h1 className="text-2xl font-semibold tracking-tight">{t('editTitle')}</h1>
         <p className="text-muted-foreground text-sm">{date}</p>

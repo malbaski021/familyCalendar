@@ -211,7 +211,24 @@
       "deleteSeries": "Delete entire series",
       "deleteSeriesConfirm": "Delete the entire recurring series? Every occurrence will be removed."
     },
-    "seriesBadge": "Recurring"
+    "seriesBadge": "Recurring",
+    "lock": {
+      "lockedTitle": "{user} is editing this event",
+      "lockedFallback": "Someone else",
+      "lockedSince": "Locked {when}",
+      "lockedHint": "You can come back once they're done.",
+      "backToDetail": "Back to event"
+    },
+    "draft": {
+      "softWarn": "You've been editing for 10 minutes — save soon so you don't lose your changes.",
+      "expired": "Your edit session timed out and your draft was saved.",
+      "expiredTitle": "Edit session expired",
+      "expiredBody": "We saved your changes as a draft. Open the event again to continue editing.",
+      "promptTitle": "You have an unsaved draft",
+      "promptBody": "Pick up where you left off, or discard the draft and start fresh.",
+      "restore": "Continue draft",
+      "discard": "Discard draft"
+    }
   },
   "children": {
     "placeholder": "Child's name",

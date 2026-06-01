@@ -4,6 +4,7 @@ import { requireOnboardedUser } from '@/lib/auth/guards';
 import { createClient } from '@/lib/supabase/server';
 import { getFamilyContextFor } from '@/lib/family/get-family-context';
 import { EventForm } from '@/components/calendar/event-form';
+import { BackLink } from '@/components/nav/back-link';
 
 type Props = {
   params: Promise<{ locale: string }>;
@@ -28,9 +29,11 @@ export default async function AddEventPage({ params }: Props) {
     .order('created_at', { ascending: true });
 
   const t = await getTranslations({ locale, namespace: 'events' });
+  const tNav = await getTranslations({ locale, namespace: 'nav' });
 
   return (
     <div className="mx-auto flex w-full max-w-xl flex-1 flex-col gap-6 p-6">
+      <BackLink href="/calendar" label={tNav('calendar')} data-testid="add-event-back-link" />
       <header>
         <h1 className="text-2xl font-semibold tracking-tight">{t('createTitle')}</h1>
       </header>

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useTransition } from 'react';
+import { useEffect, useState, useTransition } from 'react';
 import { useForm, Controller, type Resolver } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useTranslations } from 'next-intl';
@@ -73,6 +73,15 @@ export function EventForm({ mode, eventId, initial, familyChildren }: Props) {
   const allDay = form.watch('allDay');
   const recurrence = form.watch('recurrence');
 
+  // Broadcast the current form values so the (optional) `EditLockShell`
+  // wrapping us in edit mode can save them as a draft when the lock
+  // expires. The shell listens via `window.addEventListener`.
+  const allValues = form.watch();
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    window.dispatchEvent(new CustomEvent('event-form:values', { detail: allValues }));
+  }, [allValues]);
+
   function onSubmit(values: EventInput) {
     setServerError(null);
     startTransition(async () => {
@@ -82,6 +91,9 @@ export function EventForm({ mode, eventId, initial, familyChildren }: Props) {
           : await updateEventAction({ id: eventId!, input: values });
       if (result.ok) {
         toast.success(mode === 'create' ? t('created') : t('updated'));
+        if (mode === 'edit' && eventId && typeof window !== 'undefined') {
+          window.dispatchEvent(new CustomEvent('event-form:submitted', { detail: { eventId } }));
+        }
         router.replace(mode === 'create' ? '/calendar' : `/calendar/${result.data.id}`);
         router.refresh();
       } else {

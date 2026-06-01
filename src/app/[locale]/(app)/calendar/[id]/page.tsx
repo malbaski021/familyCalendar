@@ -8,6 +8,7 @@ import { getFamilyContextFor } from '@/lib/family/get-family-context';
 import { CATEGORY_STYLES } from '@/lib/calendar/categories';
 import { DeleteEventButton } from '@/components/calendar/delete-event-button';
 import { CancelInstanceButton } from '@/components/calendar/cancel-instance-button';
+import { BackLink } from '@/components/nav/back-link';
 import type { EventCategory } from '@/lib/calendar/query';
 
 type Props = {
@@ -66,6 +67,7 @@ export default async function EventDetailPage({ params, searchParams }: Props) {
 
   const t = await getTranslations({ locale, namespace: 'events' });
   const tCat = await getTranslations({ locale, namespace: 'events.categories' });
+  const tNav = await getTranslations({ locale, namespace: 'nav' });
   const style = CATEGORY_STYLES[event.category as EventCategory];
   const childNames = (event.event_children ?? [])
     .map((ec) => ec.children?.name)
@@ -79,6 +81,7 @@ export default async function EventDetailPage({ params, searchParams }: Props) {
 
   return (
     <div className="mx-auto flex w-full max-w-xl flex-1 flex-col gap-6 p-6">
+      <BackLink href="/calendar" label={tNav('calendar')} data-testid="event-detail-back-link" />
       <header className="flex items-start justify-between gap-2">
         <div className="space-y-1">
           <p className="text-muted-foreground flex items-center gap-2 text-xs tracking-wide uppercase">

@@ -1,6 +1,8 @@
 import 'server-only';
 import { format } from 'date-fns';
 import { createClient } from '@/lib/supabase/server';
+import { getCurrentUser } from '@/lib/auth/get-current-user';
+import { LOCK_TTL_MS } from '@/lib/calendar/lock-constants';
 import type { Database } from '@/types/database';
 import type { DateRange } from '@/lib/calendar/view';
 import { expandOccurrences, type RecurrencePattern } from '@/lib/calendar/recurrence';
@@ -22,6 +24,10 @@ export interface CalendarEvent {
   location: string | null;
   notes: string | null;
   recurring: boolean;
+  /** True when ANOTHER family member currently holds the (non-stale) edit lock.
+   *  The chip renders a small badge so users see "someone is editing this" before
+   *  they try to open it. Self-locks aren't surfaced — they're the boring case. */
+  lockedByOther: boolean;
 }
 
 /**
@@ -44,10 +50,13 @@ export async function loadEventsInRange(
   //  1. one-off / multi-day events that overlap the range (same predicate as F5)
   //  2. recurring series whose start_date is ≤ range.end AND
   //     (recurring_end_date IS NULL OR recurring_end_date ≥ range.start)
+  const currentUser = await getCurrentUser();
+  const callerId = currentUser?.authId ?? null;
+
   const { data, error } = await supabase
     .from('events')
     .select(
-      'id, title, category, start_date, end_date, start_time, end_time, location, notes, recurring_pattern, recurring_end_date',
+      'id, title, category, start_date, end_date, start_time, end_time, location, notes, recurring_pattern, recurring_end_date, locked_by, locked_at',
     )
     .eq('family_id', familyId)
     .lte('start_date', endStr);
@@ -80,9 +89,17 @@ export async function loadEventsInRange(
     overridesByKey.set(`${row.event_id}|${row.instance_date}`, row);
   }
 
+  const now = Date.now();
+  function lockedByOther(event: { locked_by: string | null; locked_at: string | null }): boolean {
+    if (!event.locked_by || event.locked_by === callerId) return false;
+    if (!event.locked_at) return false;
+    return now - new Date(event.locked_at).getTime() <= LOCK_TTL_MS;
+  }
+
   const occurrences: CalendarEvent[] = [];
   for (const event of data) {
     const isRecurring = event.recurring_pattern !== null;
+    const locked = lockedByOther(event);
 
     // Non-recurring single-or-multi-day path: keep the F5 behaviour and emit
     // a single CalendarEvent unless the row falls entirely outside the range.
@@ -91,7 +108,7 @@ export async function loadEventsInRange(
       const end = event.end_date ?? event.start_date;
       // Same predicate the SQL would have applied; cheaper than another round-trip.
       if (end < startStr || start > endStr) continue;
-      occurrences.push(makeOccurrence(event, event.start_date, false));
+      occurrences.push(makeOccurrence(event, event.start_date, false, null, locked));
       continue;
     }
 
@@ -108,7 +125,7 @@ export async function loadEventsInRange(
       const dateStr = format(date, 'yyyy-MM-dd');
       const override = overridesByKey.get(`${event.id}|${dateStr}`);
       if (override?.is_cancelled) continue;
-      occurrences.push(makeOccurrence(event, dateStr, true, override ?? null));
+      occurrences.push(makeOccurrence(event, dateStr, true, override ?? null, locked));
     }
   }
 
@@ -139,13 +156,14 @@ function makeOccurrence(
   },
   occurrenceDate: string,
   recurring: boolean,
-  override?: {
+  override: {
     override_title: string | null;
     override_start_time: string | null;
     override_end_time: string | null;
     override_location: string | null;
     override_notes: string | null;
   } | null,
+  lockedByOther: boolean,
 ): CalendarEvent {
   return {
     id: event.id,
@@ -159,6 +177,7 @@ function makeOccurrence(
     location: override?.override_location ?? event.location,
     notes: override?.override_notes ?? event.notes,
     recurring,
+    lockedByOther,
   };
 }
 
