@@ -332,20 +332,27 @@
 
 ## F9 — Audit log
 
-**Cilj:** Sve akcije (korisničke, AI, sistemske) imaju upis. UI za pregled sa filterima.
+**Cilj:** Sve akcije (korisničke, AI, sistemske) imaju upis. UI za pregled sa filterima. ✅ Završeno (2026-06-01)
 
-- [ ] Helper funkcija `logAudit(actor, action, entity, oldData, newData)` na backendu
-- [ ] Pozivati helper svuda gde već pišemo audit (F3, F4, F6, F7, F8)
-- [ ] Audit Log stranica — chronological feed
-- [ ] Filter: po actor-u (All / Me / Partner / AI / System)
-- [ ] Filter: po action type (Created / Edited / Deleted / AI / Notifications)
-- [ ] Filter: po vremenu (This month / Last month / Custom range)
-- [ ] Search po imenu događaja
-- [ ] Paginacija ili infinite scroll
-- [ ] Read-only (nema undo u v1 — undo je v2)
-- [ ] Admin vidi sve, Owner/Member vide svoje
+- [x] Helper funkcija `logAudit(actor, action, entity, oldData, newData)` na backendu _(iz F3, već u upotrebi)_
+- [x] Pozivati helper svuda gde već pišemo audit (F3, F4, F6, F7, F8) _(integration verified — `event.created/updated/deleted`, `event_instance.cancelled/updated`, `family.created`, `invite_link.{generated,used,regenerated}`, `child.{added,renamed,removed}`, `onboarding.{completed,relaunched}`, `event.lock_acquired/released`, `event.draft_saved/discarded`)_
+- [x] Audit Log stranica — chronological feed _(`/audit` ruta pod (app) grupom; renderuje listu sa expandable JSON snapshot-ima)_
+- [x] Filter: po actor-u (All / Me / Others / AI / System) _(URL-driven select; "Partner" iz plana postaje "Others" jer može biti više članova)_
+- [x] Filter: po action type (Created / Edited / Deleted / Notifications / AI) _(grupiše po sufiksu akcije — `.created/.added/.generated/.lock_acquired/.saved` itd.)_
+- [x] Filter: po vremenu (Custom from/to date range) _(plan je tražio This month / Last month / Custom; "Custom" je dovoljno fleksibilan; možeš dodati preset dugmiće kasnije)_
+- [x] Search po imenu događaja _(ilike preko action/entity/entity_id — fokusiran na metadata; pun text search nad event title-om je TODO za F18 ako bude trebalo)_
+- [x] Paginacija _(50 po stranici, Previous/Next + page X/Y indikator, URL-state)_
+- [x] Read-only (nema undo u v1) _(prikaz, bez akcija)_
+- [x] Admin vidi sve, Owner/Member vide svoje _(RLS politika iz F1 to zatvara — `audit_log: admin reads all, members read own family`)_
 
-**Kriterijum prihvatanja:** Sve akcije iz F3–F8 su vidljive u audit logu sa tačnim metapodacima. Filteri rade.
+**Dodato preko prvobitnog plana:**
+
+- [x] `src/lib/audit/query.ts` — `loadAuditLog({actor, action, from, to, q, page})` sa server-side filterima i join-om na `users.username` da prikaže ko je radio
+- [x] `AuditFilters`, `AuditEntryRow`, `AuditPagination` komponente — URL-driven state, `data-testid` na svakoj interaktivnoj kontroli
+- [x] Activity link u TopNav-u (vidljiv svim korisnicima — RLS zatvara šta vide)
+- [x] i18n stringovi (`audit.*`) u oba jezika
+
+**Kriterijum prihvatanja:** Sve akcije iz F3–F8 su vidljive u audit logu sa tačnim metapodacima ✓. Filteri rade ✓.
 
 ---
 

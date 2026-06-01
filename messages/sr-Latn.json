@@ -21,7 +21,8 @@
     "language": "Jezik",
     "languageEn": "English",
     "languageSrLatn": "Srpski (latinica)",
-    "admin": "Admin"
+    "admin": "Admin",
+    "audit": "Aktivnosti"
   },
   "home": {
     "welcome": "Dobrodošli u Porodični kalendar",
@@ -265,6 +266,50 @@
         "denied": "Notifikacije su blokirane. Uključi ih u podešavanjima pregledača.",
         "unsupported": "Ovaj pregledač ne podržava notifikacije."
       }
+    }
+  },
+  "audit": {
+    "title": "Istorija aktivnosti",
+    "subtitle": "Sve što se desilo u tvom porodičnom kalendaru, najnovije prvo.",
+    "empty": "Nema aktivnosti za zadate filtere.",
+    "actorSystem": "Sistem",
+    "actorAi": "AI",
+    "actorUnknown": "Nepoznato",
+    "oldData": "Pre",
+    "newData": "Posle",
+    "expand": "Otvori detalje",
+    "collapse": "Sakri detalje",
+    "filters": {
+      "actor": "Ko",
+      "action": "Šta",
+      "from": "Od",
+      "to": "Do",
+      "search": "Pretraga",
+      "searchPlaceholder": "akcija, entitet, id…",
+      "apply": "Primeni",
+      "applying": "Primenjujem...",
+      "reset": "Obriši filtere",
+      "actorOption": {
+        "all": "Bilo ko",
+        "me": "Ja",
+        "others": "Ostali članovi",
+        "ai": "AI",
+        "system": "Sistem"
+      },
+      "actionOption": {
+        "all": "Bilo koja akcija",
+        "created": "Kreirano",
+        "edited": "Izmenjeno",
+        "deleted": "Obrisano",
+        "notifications": "Notifikacije",
+        "ai": "AI"
+      }
+    },
+    "pagination": {
+      "summary": "{from}–{to} od {total}",
+      "pageOf": "{page} / {total}",
+      "prev": "Prethodna stranica",
+      "next": "Sledeća stranica"
     }
   }
 }

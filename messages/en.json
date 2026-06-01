@@ -21,7 +21,8 @@
     "language": "Language",
     "languageEn": "English",
     "languageSrLatn": "Srpski (latinica)",
-    "admin": "Admin"
+    "admin": "Admin",
+    "audit": "Activity"
   },
   "home": {
     "welcome": "Welcome to Family Calendar",
@@ -265,6 +266,50 @@
         "denied": "Notifications are blocked. Enable them in your browser settings.",
         "unsupported": "This browser does not support notifications."
       }
+    }
+  },
+  "audit": {
+    "title": "Activity log",
+    "subtitle": "Everything that happened in your family calendar, newest first.",
+    "empty": "No activity matches the current filters yet.",
+    "actorSystem": "System",
+    "actorAi": "AI",
+    "actorUnknown": "Unknown",
+    "oldData": "Before",
+    "newData": "After",
+    "expand": "Expand details",
+    "collapse": "Collapse details",
+    "filters": {
+      "actor": "Who",
+      "action": "What",
+      "from": "From",
+      "to": "To",
+      "search": "Search",
+      "searchPlaceholder": "action, entity, id…",
+      "apply": "Apply",
+      "applying": "Applying...",
+      "reset": "Clear filters",
+      "actorOption": {
+        "all": "Anyone",
+        "me": "Me",
+        "others": "Other members",
+        "ai": "AI",
+        "system": "System"
+      },
+      "actionOption": {
+        "all": "Any action",
+        "created": "Created",
+        "edited": "Edited",
+        "deleted": "Deleted",
+        "notifications": "Notifications",
+        "ai": "AI"
+      }
+    },
+    "pagination": {
+      "summary": "{from}–{to} of {total}",
+      "pageOf": "{page} / {total}",
+      "prev": "Previous page",
+      "next": "Next page"
     }
   }
 }

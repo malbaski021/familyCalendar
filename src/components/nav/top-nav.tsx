@@ -7,6 +7,7 @@ import {
   UserCircleIcon,
   SettingsIcon,
   ShieldCheckIcon,
+  HistoryIcon,
 } from 'lucide-react';
 import { Link, usePathname } from '@/i18n/navigation';
 import { cn } from '@/lib/utils';
@@ -17,6 +18,7 @@ import { LogoutButton } from '@/components/auth/logout-button';
 const BASE_ITEMS = [
   { key: 'calendar', href: '/calendar', icon: CalendarDaysIcon, labelKey: 'calendar' as const },
   { key: 'add', href: '/calendar/add', icon: PlusCircleIcon, labelKey: 'add' as const },
+  { key: 'audit', href: '/audit', icon: HistoryIcon, labelKey: 'audit' as const },
   { key: 'settings', href: '/settings', icon: SettingsIcon, labelKey: 'settings' as const },
   { key: 'profile', href: '/profile', icon: UserCircleIcon, labelKey: 'profile' as const },
 ];
