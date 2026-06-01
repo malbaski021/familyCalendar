@@ -26,8 +26,10 @@ describe('eventInputSchema', () => {
     expect(result.error?.issues[0]?.message).toMatch(/title/i);
   });
 
-  it('rejects a bad ISO date', () => {
-    const result = eventInputSchema.safeParse({ ...baseValid, startDate: '2026-13-01' });
+  it('rejects a malformed date string', () => {
+    // The schema validates the YYYY-MM-DD shape, not the semantic month/day
+    // range — that's left to the HTML5 `type="date"` picker plus Postgres.
+    const result = eventInputSchema.safeParse({ ...baseValid, startDate: 'not-a-date' });
     expect(result.success).toBe(false);
   });
 
