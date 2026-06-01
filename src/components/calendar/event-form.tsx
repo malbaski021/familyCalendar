@@ -50,6 +50,8 @@ function defaultValues(initial: Partial<EventInput> | undefined): EventInput {
     location: initial?.location ?? '',
     notes: initial?.notes ?? '',
     childIds: initial?.childIds ?? [],
+    recurrence: initial?.recurrence ?? 'none',
+    recurringEndDate: initial?.recurringEndDate ?? null,
   };
 }
 
@@ -69,6 +71,7 @@ export function EventForm({ mode, eventId, initial, familyChildren }: Props) {
   });
 
   const allDay = form.watch('allDay');
+  const recurrence = form.watch('recurrence');
 
   function onSubmit(values: EventInput) {
     setServerError(null);
@@ -313,6 +316,56 @@ export function EventForm({ mode, eventId, initial, familyChildren }: Props) {
                     );
                   })}
                 </div>
+              </FormItem>
+            )}
+          />
+        )}
+
+        <Controller
+          control={form.control}
+          name="recurrence"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>{t('recurrence')}</FormLabel>
+              <FormControl>
+                <select
+                  value={field.value}
+                  onChange={(e) => field.onChange(e.target.value)}
+                  className="border-input bg-background h-9 rounded-md border px-3 text-sm"
+                  data-testid="event-form-recurrence-select"
+                >
+                  <option value="none">{t('recurrenceNone')}</option>
+                  <option value="daily">{t('recurrenceDaily')}</option>
+                  <option value="weekly">{t('recurrenceWeekly')}</option>
+                  <option value="monthly">{t('recurrenceMonthly')}</option>
+                </select>
+              </FormControl>
+            </FormItem>
+          )}
+        />
+
+        {recurrence !== 'none' && (
+          <Controller
+            control={form.control}
+            name="recurringEndDate"
+            render={({ field, fieldState }) => (
+              <FormItem>
+                <FormLabel>{t('recurringEndDate')}</FormLabel>
+                <FormControl>
+                  <Input
+                    type="date"
+                    value={field.value ?? ''}
+                    onChange={(e) => field.onChange(e.target.value || null)}
+                    onBlur={field.onBlur}
+                    name={field.name}
+                    ref={field.ref}
+                    data-testid="event-form-recurring-end-date-input"
+                  />
+                </FormControl>
+                {fieldState.error?.message && (
+                  <p className="text-destructive text-sm">{fieldState.error.message}</p>
+                )}
+                <p className="text-muted-foreground text-xs">{t('recurringEndDateHint')}</p>
               </FormItem>
             )}
           />

@@ -26,7 +26,7 @@ export default async function EditEventPage({ params }: Props) {
   const { data: event } = await supabase
     .from('events')
     .select(
-      'id, title, category, start_date, end_date, start_time, end_time, location, notes, event_children(child_id)',
+      'id, title, category, start_date, end_date, start_time, end_time, location, notes, recurring_pattern, recurring_end_date, event_children(child_id)',
     )
     .eq('id', id)
     .eq('family_id', family.familyId)
@@ -61,6 +61,8 @@ export default async function EditEventPage({ params }: Props) {
           notes: event.notes,
           allDay: !event.start_time,
           childIds: (event.event_children ?? []).map((ec) => ec.child_id),
+          recurrence: event.recurring_pattern ?? 'none',
+          recurringEndDate: event.recurring_end_date,
         }}
         familyChildren={children ?? []}
       />

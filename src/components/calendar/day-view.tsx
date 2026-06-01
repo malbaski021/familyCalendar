@@ -23,6 +23,9 @@ export function DayView({ anchor, events }: Props) {
   const dayKey = format(anchor, 'yyyy-MM-dd');
 
   const dayEvents = events.filter((e) => {
+    // Recurring occurrences land on a single date; non-recurring multi-day
+    // events span between their start and end.
+    if (e.recurring) return e.occurrenceDate === dayKey;
     const start = parseISO(e.startDate);
     const end = e.endDate ? parseISO(e.endDate) : start;
     return anchor >= start && anchor <= end;
@@ -53,7 +56,7 @@ export function DayView({ anchor, events }: Props) {
         <section className="grid gap-2">
           <h2 className="text-muted-foreground text-xs tracking-wide uppercase">{t('allDay')}</h2>
           {allDay.map((e) => (
-            <EventRow key={e.id} event={e} />
+            <EventRow key={`${e.id}-${e.occurrenceDate}`} event={e} />
           ))}
         </section>
       )}
@@ -63,7 +66,7 @@ export function DayView({ anchor, events }: Props) {
             {t('scheduled')}
           </h2>
           {timed.map((e) => (
-            <EventRow key={e.id} event={e} />
+            <EventRow key={`${e.id}-${e.occurrenceDate}`} event={e} />
           ))}
         </section>
       )}
@@ -73,11 +76,14 @@ export function DayView({ anchor, events }: Props) {
 
 function EventRow({ event }: { event: CalendarEvent }) {
   const style = CATEGORY_STYLES[event.category];
+  const href = event.recurring
+    ? `/calendar/${event.id}?date=${event.occurrenceDate}`
+    : `/calendar/${event.id}`;
   return (
     <Link
-      href={`/calendar/${event.id}`}
+      href={href}
       className={cn('flex gap-3 rounded-lg border p-3 hover:brightness-95', style.chipClass)}
-      data-testid={`calendar-day-event-${event.id}-link`}
+      data-testid={`calendar-day-event-${event.id}-${event.occurrenceDate}-link`}
     >
       <div className="text-2xl" aria-hidden="true">
         {style.emoji}

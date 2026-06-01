@@ -190,8 +190,28 @@
       "submitting": "Saving...",
       "cancel": "Cancel",
       "created": "Event created",
-      "updated": "Event updated"
-    }
+      "updated": "Event updated",
+      "recurrence": "Repeats",
+      "recurrenceNone": "Does not repeat",
+      "recurrenceDaily": "Every day",
+      "recurrenceWeekly": "Every week",
+      "recurrenceMonthly": "Every month",
+      "recurringEndDate": "Repeat until",
+      "recurringEndDateHint": "Leave empty for an open-ended series."
+    },
+    "instance": {
+      "editTitle": "Edit this occurrence",
+      "editOccurrence": "Edit only this occurrence",
+      "editSeries": "Edit the whole series",
+      "cancelOccurrence": "Cancel this occurrence",
+      "cancelOccurrenceConfirm": "Cancel just the {date} occurrence? The rest of the series stays.",
+      "cancelled": "Occurrence cancelled",
+      "overrideSaved": "Occurrence updated",
+      "overrideHelp": "Changes here apply only to this date. Other occurrences of the series are unaffected.",
+      "deleteSeries": "Delete entire series",
+      "deleteSeriesConfirm": "Delete the entire recurring series? Every occurrence will be removed."
+    },
+    "seriesBadge": "Recurring"
   },
   "children": {
     "placeholder": "Child's name",
