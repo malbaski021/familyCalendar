@@ -3,6 +3,7 @@
 import { useTranslations } from 'next-intl';
 import { format, parseISO } from 'date-fns';
 import { ClockIcon, MapPinIcon } from 'lucide-react';
+import { Link } from '@/i18n/navigation';
 import { cn } from '@/lib/utils';
 import { CATEGORY_STYLES } from '@/lib/calendar/categories';
 import type { CalendarEvent } from '@/lib/calendar/query';
@@ -73,9 +74,10 @@ export function DayView({ anchor, events }: Props) {
 function EventRow({ event }: { event: CalendarEvent }) {
   const style = CATEGORY_STYLES[event.category];
   return (
-    <article
-      className={cn('flex gap-3 rounded-lg border p-3', style.chipClass)}
-      data-testid={`calendar-day-event-${event.id}`}
+    <Link
+      href={`/calendar/${event.id}`}
+      className={cn('flex gap-3 rounded-lg border p-3 hover:brightness-95', style.chipClass)}
+      data-testid={`calendar-day-event-${event.id}-link`}
     >
       <div className="text-2xl" aria-hidden="true">
         {style.emoji}
@@ -101,6 +103,6 @@ function EventRow({ event }: { event: CalendarEvent }) {
         )}
         {event.notes && <p className="text-xs">{event.notes}</p>}
       </div>
-    </article>
+    </Link>
   );
 }

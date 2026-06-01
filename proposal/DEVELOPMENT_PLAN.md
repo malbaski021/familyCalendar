@@ -247,24 +247,32 @@
 
 ---
 
-## F6 — Event CRUD
+## F6 — Event CRUD ✅ Završeno (2026-06-01)
 
 **Cilj:** Stvaranje, čitanje, izmena i brisanje običnih (ne-recurring) događaja sa svim poljima.
 
-- [ ] Event create forma (sva polja iz proposal-a)
-- [ ] Category dropdown sa bojama i emoji-ima (Birthday, Performance, Match, School, Doctor, Other)
-- [ ] Date/time picker (mobile-friendly)
-- [ ] Multi-day events (start + end date)
-- [ ] All-day vs timed events
-- [ ] Location, Notes (free text)
-- [ ] Child tag (manuelni dropdown — AI auto-detection dolazi u F11)
-- [ ] Event detail view
-- [ ] Edit event (otvara istu formu sa popunjenim vrednostima)
-- [ ] Delete event sa potvrdom
-- [ ] Audit log: `event.created`, `event.updated`, `event.deleted`
-- [ ] Prikaz događaja u sva tri view-a (boja kategorije, emoji, naslov)
+- [x] Event create forma (sva polja iz proposal-a) _(EventForm deli se za create i edit)_
+- [x] Category dropdown sa bojama i emoji-ima _(native `<select>` sa emoji prefiksom; boje + chip stilovi iz `CATEGORY_STYLES` iz F5)_
+- [x] Date/time picker (mobile-friendly) _(native HTML5 `type="date"`/`type="time"` — odlično podržano na mobile)_
+- [x] Multi-day events (start + end date) _(end date opciono; Zod refine validira `end >= start`)_
+- [x] All-day vs timed events _(checkbox toggle; sakriva time polja kad je all-day, Zod refine forsira null)_
+- [x] Location, Notes (free text)
+- [x] Child tag (manuelni dropdown — AI auto-detection dolazi u F11) _(višestruki checkbox-i, snimaju se u `event_children` join tabelu)_
+- [x] Event detail view _(`/calendar/[id]` ruta sa svim poljima + edit/delete dugmićima)_
+- [x] Edit event (otvara istu formu sa popunjenim vrednostima) _(`/calendar/[id]/edit`)_
+- [x] Delete event sa potvrdom _(window.confirm + redirect na `/calendar`)_
+- [x] Audit log: `event.created`, `event.updated`, `event.deleted` _(old_data + new_data snapshot)_
+- [x] Prikaz događaja u sva tri view-a (boja kategorije, emoji, naslov) _(F5 već renderuje, F6 svaki chip je sad Link na detail stranicu)_
 
-**Kriterijum prihvatanja:** Mogu se kreirati, izmeniti i obrisati događaji svih kategorija i tipova (single, multi-day, all-day, timed). Sve promene se vide u realnom vremenu kod drugog člana porodice (Supabase Realtime na `events` tabelu).
+**Dodato preko prvobitnog plana:**
+
+- [x] **Supabase Realtime** — migracija `20260601120000_events_realtime.sql` dodaje `events` u `supabase_realtime` publication; `RealtimeEvents` client komponenta pretplaćuje se na INSERT/UPDATE/DELETE filterovan po `family_id` i radi `router.refresh()` — promene se vide u realnom vremenu kod drugog člana porodice
+- [x] `src/lib/calendar/event-schema.ts` — Zod schema sa tri refinement-a (end_date >= start_date, end_time > start_time za isti dan, all-day ne sme imati vreme) + 8 unit testova
+- [x] `src/lib/calendar/event-actions.ts` — createEvent / updateEvent / deleteEvent server actions koji rade family scoping + audit + sync event_children join
+- [x] Integration testovi (`src/test/integration/events.test.ts`, 5 slučajeva) — single-day, multi-day all-day, child tagging, update in place, delete sa cascade
+- [x] **Admin nav link (deferred F5 polish)** — TopNav + BottomNav prikazuju "Admin" stavku samo kad `user.profile.role === 'admin'`, BottomNav menja grid sa 3 → 4 kolone
+
+**Kriterijum prihvatanja:** Mogu se kreirati, izmeniti i obrisati događaji svih kategorija i tipova ✓. Sve promene se vide u realnom vremenu kod drugog člana porodice ✓ (Supabase Realtime na `events` tabelu). 66/66 unit + 45/45 integration testova prolazi.
 
 ---
 

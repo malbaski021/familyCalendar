@@ -1,27 +1,48 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import { CalendarDaysIcon, PlusCircleIcon, UserCircleIcon, SettingsIcon } from 'lucide-react';
+import {
+  CalendarDaysIcon,
+  PlusCircleIcon,
+  UserCircleIcon,
+  SettingsIcon,
+  ShieldCheckIcon,
+} from 'lucide-react';
 import { Link, usePathname } from '@/i18n/navigation';
 import { cn } from '@/lib/utils';
 import { LanguageToggle } from '@/components/language-toggle';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { LogoutButton } from '@/components/auth/logout-button';
 
-const ITEMS = [
+const BASE_ITEMS = [
   { key: 'calendar', href: '/calendar', icon: CalendarDaysIcon, labelKey: 'calendar' as const },
   { key: 'add', href: '/calendar/add', icon: PlusCircleIcon, labelKey: 'add' as const },
   { key: 'settings', href: '/settings', icon: SettingsIcon, labelKey: 'settings' as const },
   { key: 'profile', href: '/profile', icon: UserCircleIcon, labelKey: 'profile' as const },
 ];
 
+const ADMIN_ITEM = {
+  key: 'admin',
+  href: '/admin',
+  icon: ShieldCheckIcon,
+  labelKey: 'admin' as const,
+};
+
+interface Props {
+  /** Show the Admin entry when the rendering user is the super-admin. */
+  isAdmin?: boolean;
+}
+
 /**
  * Desktop horizontal nav, shown ≥ md. Mirrors the bottom-nav items plus
- * Settings and the existing theme / language / logout controls.
+ * Settings and the existing theme / language / logout controls. The Admin
+ * entry is appended only for the super-admin (`user.profile.role === 'admin'`).
  */
-export function TopNav() {
+export function TopNav({ isAdmin = false }: Props) {
   const t = useTranslations('nav');
   const pathname = usePathname();
+
+  const items = isAdmin ? [...BASE_ITEMS, ADMIN_ITEM] : BASE_ITEMS;
 
   return (
     <header
@@ -30,7 +51,7 @@ export function TopNav() {
     >
       <div className="mx-auto flex w-full max-w-5xl items-center justify-between px-4 py-2">
         <nav aria-label="Primary" className="flex items-center gap-1">
-          {ITEMS.map((item) => {
+          {items.map((item) => {
             const Icon = item.icon;
             const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
             return (

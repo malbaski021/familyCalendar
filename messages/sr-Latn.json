@@ -20,7 +20,8 @@
     "settings": "Podešavanja",
     "language": "Jezik",
     "languageEn": "English",
-    "languageSrLatn": "Srpski (latinica)"
+    "languageSrLatn": "Srpski (latinica)",
+    "admin": "Admin"
   },
   "home": {
     "welcome": "Dobrodošli u Porodični kalendar",
@@ -154,6 +155,42 @@
     "addPlaceholder": {
       "title": "Dodaj događaj",
       "body": "Kreiranje događaja dolazi u F6. Uskoro."
+    }
+  },
+  "events": {
+    "createTitle": "Dodaj događaj",
+    "editTitle": "Izmeni događaj",
+    "edit": "Izmeni",
+    "delete": "Obriši",
+    "deleting": "Brišem...",
+    "deleted": "Događaj obrisan",
+    "confirmDelete": "Obrisati ovaj događaj? Ova akcija se ne može poništiti.",
+    "categories": {
+      "birthday": "Rođendan",
+      "performance": "Priredba",
+      "match": "Utakmica",
+      "school": "Škola",
+      "doctor": "Lekar",
+      "other": "Ostalo"
+    },
+    "form": {
+      "title": "Naslov",
+      "category": "Kategorija",
+      "allDay": "Ceo dan",
+      "startDate": "Datum početka",
+      "endDate": "Datum završetka",
+      "startTime": "Vreme početka",
+      "endTime": "Vreme završetka",
+      "time": "Vreme",
+      "location": "Lokacija",
+      "notes": "Napomene",
+      "children": "Označena deca",
+      "create": "Napravi događaj",
+      "save": "Sačuvaj izmene",
+      "submitting": "Čuvam...",
+      "cancel": "Otkaži",
+      "created": "Događaj napravljen",
+      "updated": "Događaj izmenjen"
     }
   },
   "children": {

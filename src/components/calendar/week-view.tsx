@@ -2,6 +2,7 @@
 
 import { useTranslations } from 'next-intl';
 import { addDays, format, isToday, parseISO } from 'date-fns';
+import { Link } from '@/i18n/navigation';
 import { cn } from '@/lib/utils';
 import { CATEGORY_STYLES } from '@/lib/calendar/categories';
 import type { DateRange } from '@/lib/calendar/view';
@@ -62,13 +63,17 @@ export function WeekView({ range, events }: Props) {
                 {items.map((e) => {
                   const style = CATEGORY_STYLES[e.category];
                   return (
-                    <div
+                    <Link
                       key={e.id}
-                      className={cn('truncate rounded-sm border px-1 text-[10px]', style.chipClass)}
-                      data-testid={`calendar-week-event-${e.id}`}
+                      href={`/calendar/${e.id}`}
+                      className={cn(
+                        'block truncate rounded-sm border px-1 text-[10px] hover:brightness-95',
+                        style.chipClass,
+                      )}
+                      data-testid={`calendar-week-event-${e.id}-link`}
                     >
                       {style.emoji} {e.title}
-                    </div>
+                    </Link>
                   );
                 })}
               </div>
@@ -112,13 +117,17 @@ function HourRow({ hour, days, timedByCell }: HourRowProps) {
             {items.map((e) => {
               const style = CATEGORY_STYLES[e.category];
               return (
-                <div
+                <Link
                   key={e.id}
-                  className={cn('truncate rounded-sm border px-1 text-[10px]', style.chipClass)}
-                  data-testid={`calendar-week-event-${e.id}`}
+                  href={`/calendar/${e.id}`}
+                  className={cn(
+                    'block truncate rounded-sm border px-1 text-[10px] hover:brightness-95',
+                    style.chipClass,
+                  )}
+                  data-testid={`calendar-week-event-${e.id}-link`}
                 >
                   {e.startTime} {e.title}
-                </div>
+                </Link>
               );
             })}
           </div>
