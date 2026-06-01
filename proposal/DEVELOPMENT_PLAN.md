@@ -276,20 +276,29 @@
 
 ---
 
-## F7 — Recurring events
+## F7 — Recurring events ✅ Završeno (2026-06-01)
 
 **Cilj:** Podrška za ponavljajuće događaje sa mogućnošću izmene/otkazivanja pojedinačne instance.
 
-- [ ] Recurring pattern polje u event formi (Daily / Weekly / Monthly / None)
-- [ ] Recurring end date
-- [ ] Generisanje `event_instances` zapisa kroz pattern (backend job ili on-demand)
-- [ ] Prikaz svake instance kao zaseban događaj u kalendaru
-- [ ] Edit pojedinačne instance (override) — ne dira ostale
-- [ ] Cancel pojedinačne instance — soft delete instance, serija ostaje
-- [ ] Edit "celu seriju" opcija na master event
-- [ ] Audit log za instance-level promene
+- [x] Recurring pattern polje u event formi (Daily / Weekly / Monthly / None) _(select u EventForm, default 'none')_
+- [x] Recurring end date _(opciono, prikazuje se tek kad pattern != none)_
+- [x] Generisanje `event_instances` zapisa kroz pattern — **on-demand** _(expandOccurrences() rastvara seriju u datume koji padaju u trenutni range; ne kreira DB redove unapred)_
+- [x] Prikaz svake instance kao zaseban događaj u kalendaru _(views bucket-uju po `occurrenceDate`)_
+- [x] Edit pojedinačne instance (override) — ne dira ostale _(InstanceOverrideForm + overrideInstanceAction)_
+- [x] Cancel pojedinačne instance — soft delete instance, serija ostaje _(CancelInstanceButton + cancelInstanceAction sa upsert is_cancelled=true)_
+- [x] Edit "celu seriju" opcija na master event _(postojeći /calendar/[id]/edit — dugme "Edit series" na instance detail-u)_
+- [x] Audit log za instance-level promene _(`event_instance.cancelled`, `event_instance.updated`)_
 
-**Kriterijum prihvatanja:** Mogu napraviti weekly trening, promeniti termin samo jedne sedmice, otkazati treću sedmicu, ostatak ostaje neizmenjen.
+**Dodato preko prvobitnog plana:**
+
+- [x] `src/lib/calendar/recurrence.ts` — pure `expandOccurrences()` helper sa safety cap-om od 5000 iteracija; 6 unit testova
+- [x] `loadEventsInRange` proširen — povlači override-e iz `event_instances`, primenjuje ih, preskače cancelled, sortira (occurrenceDate, startTime)
+- [x] `CalendarEvent` tip dobio `occurrenceDate` + `recurring: boolean`; views bucket-uju po `occurrenceDate` za recurring, multi-day overlap za non-recurring
+- [x] Detail page (`/calendar/[id]?date=YYYY-MM-DD`) — kad URL ima `date`, akcije su instance-level (cancel + edit single); bez `date`, akcije su serija-level (edit series + delete entire series)
+- [x] Nova ruta `/calendar/[id]/instance/[date]/edit` za instance override
+- [x] Integration testovi (`src/test/integration/recurring-events.test.ts`, 4 slučaja)
+
+**Kriterijum prihvatanja:** Weekly trening ✓, izmena samo jedne sedmice ✓, otkazivanje treće sedmice ✓, ostatak netaknut ✓. 76/76 unit + 49/49 integration testova.
 
 ---
 

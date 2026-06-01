@@ -23,6 +23,8 @@ async function findFamilyForCurrentUser(): Promise<
 }
 
 function toDbPayload(input: EventInput) {
+  const pattern: 'daily' | 'weekly' | 'monthly' | null =
+    input.recurrence === 'none' ? null : input.recurrence;
   return {
     title: input.title,
     category: input.category,
@@ -32,6 +34,8 @@ function toDbPayload(input: EventInput) {
     end_time: input.allDay ? null : (input.endTime ?? null),
     location: input.location ?? null,
     notes: input.notes ?? null,
+    recurring_pattern: pattern,
+    recurring_end_date: pattern ? (input.recurringEndDate ?? null) : null,
   };
 }
 
@@ -159,4 +163,106 @@ export async function deleteEventAction(input: {
   });
 
   return { ok: true, data: { id: input.id } };
+}
+
+/**
+ * Cancel a single occurrence of a recurring series. Persists as an
+ * `event_instances` row with `is_cancelled = true`; the master event row
+ * stays intact so future occurrences keep firing. Idempotent via an UPSERT
+ * on `(event_id, instance_date)`.
+ */
+export async function cancelInstanceAction(input: {
+  eventId: string;
+  instanceDate: string;
+}): Promise<ActionResult<{ id: string }>> {
+  const ctx = await findFamilyForCurrentUser();
+  if (!ctx.ok) return { ok: false, error: ctx.error };
+
+  const supabase = await createServerClient();
+
+  // Confirm the event belongs to the caller's family (RLS would too — belt + braces).
+  const { data: master } = await supabase
+    .from('events')
+    .select('id')
+    .eq('id', input.eventId)
+    .eq('family_id', ctx.familyId)
+    .maybeSingle();
+  if (!master) return { ok: false, error: 'Event not found' };
+
+  const { error } = await supabase
+    .from('event_instances')
+    .upsert(
+      { event_id: input.eventId, instance_date: input.instanceDate, is_cancelled: true },
+      { onConflict: 'event_id,instance_date' },
+    );
+  if (error) return { ok: false, error: error.message };
+
+  await logAudit({
+    familyId: ctx.familyId,
+    actorType: 'user',
+    actorId: ctx.userId,
+    action: 'event_instance.cancelled',
+    entity: 'event_instances',
+    entityId: input.eventId,
+    newData: { instance_date: input.instanceDate },
+  });
+
+  return { ok: true, data: { id: input.eventId } };
+}
+
+/**
+ * Override a single occurrence — title / location / notes / start_time /
+ * end_time. The master event stays unchanged; other occurrences in the
+ * series are not affected. Upsert on `(event_id, instance_date)`.
+ */
+export async function overrideInstanceAction(input: {
+  eventId: string;
+  instanceDate: string;
+  overrides: {
+    title?: string | null;
+    startTime?: string | null;
+    endTime?: string | null;
+    location?: string | null;
+    notes?: string | null;
+  };
+}): Promise<ActionResult<{ id: string }>> {
+  const ctx = await findFamilyForCurrentUser();
+  if (!ctx.ok) return { ok: false, error: ctx.error };
+
+  const supabase = await createServerClient();
+
+  const { data: master } = await supabase
+    .from('events')
+    .select('id')
+    .eq('id', input.eventId)
+    .eq('family_id', ctx.familyId)
+    .maybeSingle();
+  if (!master) return { ok: false, error: 'Event not found' };
+
+  const { error } = await supabase.from('event_instances').upsert(
+    {
+      event_id: input.eventId,
+      instance_date: input.instanceDate,
+      is_cancelled: false,
+      override_title: input.overrides.title ?? null,
+      override_start_time: input.overrides.startTime ?? null,
+      override_end_time: input.overrides.endTime ?? null,
+      override_location: input.overrides.location ?? null,
+      override_notes: input.overrides.notes ?? null,
+    },
+    { onConflict: 'event_id,instance_date' },
+  );
+  if (error) return { ok: false, error: error.message };
+
+  await logAudit({
+    familyId: ctx.familyId,
+    actorType: 'user',
+    actorId: ctx.userId,
+    action: 'event_instance.updated',
+    entity: 'event_instances',
+    entityId: input.eventId,
+    newData: { instance_date: input.instanceDate, ...input.overrides },
+  });
+
+  return { ok: true, data: { id: input.eventId } };
 }

@@ -1,7 +1,7 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import { addDays, format, isSameDay, isSameMonth, isToday, parseISO } from 'date-fns';
+import { addDays, format, isSameMonth, isToday, parseISO } from 'date-fns';
 import { Link } from '@/i18n/navigation';
 import { cn } from '@/lib/utils';
 import { CATEGORY_STYLES } from '@/lib/calendar/categories';
@@ -65,15 +65,18 @@ export function MonthView({ range, anchor, events }: Props) {
             <div className="mt-1 space-y-0.5">
               {dayEvents.slice(0, 3).map((e) => {
                 const style = CATEGORY_STYLES[e.category];
+                const href = e.recurring
+                  ? `/calendar/${e.id}?date=${e.occurrenceDate}`
+                  : `/calendar/${e.id}`;
                 return (
                   <Link
-                    key={e.id}
-                    href={`/calendar/${e.id}`}
+                    key={`${e.id}-${e.occurrenceDate}`}
+                    href={href}
                     className={cn(
                       'flex items-center gap-1 truncate rounded-sm border px-1 hover:brightness-95',
                       style.chipClass,
                     )}
-                    data-testid={`calendar-month-event-${e.id}-link`}
+                    data-testid={`calendar-month-event-${e.id}-${e.occurrenceDate}-link`}
                   >
                     <span aria-hidden="true">{style.emoji}</span>
                     <span className="truncate">{e.title}</span>
@@ -100,6 +103,14 @@ function bucketEventsByDay(events: CalendarEvent[], days: Date[]): Map<string, C
   for (const day of days) map.set(format(day, 'yyyy-MM-dd'), []);
 
   for (const event of events) {
+    if (event.recurring) {
+      // Recurring occurrences are single-day by definition — drop them in the
+      // bucket matching their occurrenceDate.
+      const list = map.get(event.occurrenceDate);
+      if (list) list.push(event);
+      continue;
+    }
+    // Non-recurring: still need to span multi-day events across each day they cover.
     const start = parseISO(event.startDate);
     const end = event.endDate ? parseISO(event.endDate) : start;
     for (const day of days) {
@@ -108,7 +119,6 @@ function bucketEventsByDay(events: CalendarEvent[], days: Date[]): Map<string, C
         const list = map.get(key);
         if (list) list.push(event);
       }
-      if (isSameDay(day, end)) break;
     }
   }
   return map;

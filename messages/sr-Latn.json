@@ -190,8 +190,28 @@
       "submitting": "Čuvam...",
       "cancel": "Otkaži",
       "created": "Događaj napravljen",
-      "updated": "Događaj izmenjen"
-    }
+      "updated": "Događaj izmenjen",
+      "recurrence": "Ponavlja se",
+      "recurrenceNone": "Ne ponavlja se",
+      "recurrenceDaily": "Svaki dan",
+      "recurrenceWeekly": "Svake nedelje",
+      "recurrenceMonthly": "Svakog meseca",
+      "recurringEndDate": "Ponavljaj do",
+      "recurringEndDateHint": "Ostavi prazno za seriju bez kraja."
+    },
+    "instance": {
+      "editTitle": "Izmeni ovu pojavu",
+      "editOccurrence": "Izmeni samo ovu pojavu",
+      "editSeries": "Izmeni celu seriju",
+      "cancelOccurrence": "Otkaži ovu pojavu",
+      "cancelOccurrenceConfirm": "Otkazati samo {date}? Ostatak serije ostaje.",
+      "cancelled": "Pojava otkazana",
+      "overrideSaved": "Pojava izmenjena",
+      "overrideHelp": "Izmene ovde važe samo za ovaj datum. Ostale pojave u seriji se ne diraju.",
+      "deleteSeries": "Obriši celu seriju",
+      "deleteSeriesConfirm": "Obrisati celu seriju? Sve pojave će biti uklonjene."
+    },
+    "seriesBadge": "Ponavlja se"
   },
   "children": {
     "placeholder": "Ime deteta",

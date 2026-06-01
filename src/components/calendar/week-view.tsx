@@ -62,15 +62,18 @@ export function WeekView({ range, events }: Props) {
               >
                 {items.map((e) => {
                   const style = CATEGORY_STYLES[e.category];
+                  const href = e.recurring
+                    ? `/calendar/${e.id}?date=${e.occurrenceDate}`
+                    : `/calendar/${e.id}`;
                   return (
                     <Link
-                      key={e.id}
-                      href={`/calendar/${e.id}`}
+                      key={`${e.id}-${e.occurrenceDate}`}
+                      href={href}
                       className={cn(
                         'block truncate rounded-sm border px-1 text-[10px] hover:brightness-95',
                         style.chipClass,
                       )}
-                      data-testid={`calendar-week-event-${e.id}-link`}
+                      data-testid={`calendar-week-event-${e.id}-${e.occurrenceDate}-link`}
                     >
                       {style.emoji} {e.title}
                     </Link>
@@ -116,15 +119,18 @@ function HourRow({ hour, days, timedByCell }: HourRowProps) {
           >
             {items.map((e) => {
               const style = CATEGORY_STYLES[e.category];
+              const href = e.recurring
+                ? `/calendar/${e.id}?date=${e.occurrenceDate}`
+                : `/calendar/${e.id}`;
               return (
                 <Link
-                  key={e.id}
-                  href={`/calendar/${e.id}`}
+                  key={`${e.id}-${e.occurrenceDate}`}
+                  href={href}
                   className={cn(
                     'block truncate rounded-sm border px-1 text-[10px] hover:brightness-95',
                     style.chipClass,
                   )}
-                  data-testid={`calendar-week-event-${e.id}-link`}
+                  data-testid={`calendar-week-event-${e.id}-${e.occurrenceDate}-link`}
                 >
                   {e.startTime} {e.title}
                 </Link>
@@ -142,6 +148,11 @@ function bucketAllDay(events: CalendarEvent[], days: Date[]): Map<string, Calend
   for (const day of days) map.set(format(day, 'yyyy-MM-dd'), []);
   for (const event of events) {
     if (event.startTime) continue;
+    if (event.recurring) {
+      const list = map.get(event.occurrenceDate);
+      if (list) list.push(event);
+      continue;
+    }
     const start = parseISO(event.startDate);
     const end = event.endDate ? parseISO(event.endDate) : start;
     for (const day of days) {
@@ -158,9 +169,9 @@ function bucketTimed(events: CalendarEvent[], days: Date[]): Map<string, Calenda
   const map = new Map<string, CalendarEvent[]>();
   for (const event of events) {
     if (!event.startTime) continue;
-    const start = parseISO(event.startDate);
+    const occurrence = event.recurring ? parseISO(event.occurrenceDate) : parseISO(event.startDate);
     for (const day of days) {
-      if (day.toDateString() !== start.toDateString()) continue;
+      if (day.toDateString() !== occurrence.toDateString()) continue;
       const hour = Number(event.startTime.split(':')[0]);
       const key = `${format(day, 'yyyy-MM-dd')}-${hour}`;
       const list = map.get(key) ?? [];
