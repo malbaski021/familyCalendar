@@ -5,6 +5,7 @@ import { requireOnboardedUser } from '@/lib/auth/guards';
 import { createClient } from '@/lib/supabase/server';
 import { getFamilyContextFor } from '@/lib/family/get-family-context';
 import { EventForm } from '@/components/calendar/event-form';
+import { BackLink } from '@/components/nav/back-link';
 import type { EventCategory } from '@/lib/calendar/query';
 
 type Props = {
@@ -44,6 +45,11 @@ export default async function EditEventPage({ params }: Props) {
 
   return (
     <div className="mx-auto flex w-full max-w-xl flex-1 flex-col gap-6 p-6">
+      <BackLink
+        href={`/calendar/${event.id}`}
+        label={event.title}
+        data-testid="edit-event-back-link"
+      />
       <header>
         <h1 className="text-2xl font-semibold tracking-tight">{t('editTitle')}</h1>
       </header>
