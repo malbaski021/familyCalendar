@@ -5,6 +5,7 @@ import { getFamilyContextFor } from '@/lib/family/get-family-context';
 import { InviteLinkCard } from '@/components/admin/invite-link-card';
 import { ChildrenManager } from '@/components/family/children-manager';
 import { RelaunchOnboardingButton } from '@/components/onboarding/relaunch-button';
+import { PushToggle } from '@/components/notifications/push-toggle';
 
 type Props = {
   params: Promise<{ locale: string }>;
@@ -20,6 +21,7 @@ export default async function SettingsPage({ params }: Props) {
   const tMembers = await getTranslations({ locale, namespace: 'settings.members' });
   const tChildren = await getTranslations({ locale, namespace: 'settings.childrenSection' });
   const tOnboarding = await getTranslations({ locale, namespace: 'settings.onboarding' });
+  const tNotif = await getTranslations({ locale, namespace: 'settings.notificationsSection' });
 
   const family = await getFamilyContextFor(user.authId);
 
@@ -60,6 +62,12 @@ export default async function SettingsPage({ params }: Props) {
           <ChildrenManager initial={children ?? []} testIdPrefix="settings-children" />
         </section>
       )}
+
+      <section className="space-y-3">
+        <h2 className="text-lg font-medium">{tNotif('heading')}</h2>
+        <p className="text-muted-foreground text-sm">{tNotif('description')}</p>
+        <PushToggle />
+      </section>
 
       <section className="space-y-3">
         <h2 className="text-lg font-medium">{tOnboarding('heading')}</h2>

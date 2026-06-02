@@ -134,6 +134,10 @@
       "description": "Ponovi uvodne ekrane.",
       "relaunch": "Pokreni onboarding ponovo",
       "relaunching": "Pokrećem..."
+    },
+    "notificationsSection": {
+      "heading": "Notifikacije",
+      "description": "Dozvoli push notifikacije da podsetnici i upozorenja stignu i kad aplikacija nije otvorena."
     }
   },
   "calendar": {
@@ -266,6 +270,26 @@
         "denied": "Notifikacije su blokirane. Uključi ih u podešavanjima pregledača.",
         "unsupported": "Ovaj pregledač ne podržava notifikacije."
       }
+    }
+  },
+  "notifications": {
+    "checking": "Proveravam podršku za notifikacije…",
+    "unsupported": "Ovaj pregledač ne podržava push notifikacije.",
+    "denied": "Notifikacije su blokirane. Uključi ih u podešavanjima pregledača.",
+    "enable": "Uključi notifikacije",
+    "disable": "Isključi notifikacije",
+    "sendTest": "Pošalji test notifikaciju",
+    "subscribed": "Notifikacije uključene na ovom uređaju.",
+    "unsubscribed": "Notifikacije isključene na ovom uređaju.",
+    "testSent": "Test push poslat na {sent} uređaja.",
+    "iosInstallTitle": "Prvo instaliraj Family Calendar",
+    "iosInstallStep1": "Otvori stranicu u Safari-ju (ne Chrome na iOS-u).",
+    "iosInstallStep2": "Dodirni Share, pa \"Add to Home Screen\".",
+    "iosInstallStep3": "Otvori instaliranu aplikaciju i vrati se na Settings da uključiš notifikacije.",
+    "errors": {
+      "missingVapid": "Notifikacije nisu konfigurisane za ovo okruženje.",
+      "subscribeFailed": "Nismo uspeli da pretplatimo na notifikacije.",
+      "unsubscribeFailed": "Nismo uspeli da otkažemo pretplatu."
     }
   },
   "audit": {

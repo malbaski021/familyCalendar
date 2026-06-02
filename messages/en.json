@@ -134,6 +134,10 @@
       "description": "Walk through the welcome screens again.",
       "relaunch": "Relaunch onboarding",
       "relaunching": "Relaunching..."
+    },
+    "notificationsSection": {
+      "heading": "Notifications",
+      "description": "Allow push notifications so reminders and other alerts can reach you when the app isn't open."
     }
   },
   "calendar": {
@@ -266,6 +270,26 @@
         "denied": "Notifications are blocked. Enable them in your browser settings.",
         "unsupported": "This browser does not support notifications."
       }
+    }
+  },
+  "notifications": {
+    "checking": "Checking notification support…",
+    "unsupported": "This browser doesn't support push notifications.",
+    "denied": "Notifications are blocked. Enable them in your browser settings to turn them back on.",
+    "enable": "Enable notifications",
+    "disable": "Disable notifications",
+    "sendTest": "Send test notification",
+    "subscribed": "Notifications enabled on this device.",
+    "unsubscribed": "Notifications disabled on this device.",
+    "testSent": "Test push sent to {sent} device(s).",
+    "iosInstallTitle": "Install Family Calendar first",
+    "iosInstallStep1": "Open this page in Safari (not Chrome on iOS).",
+    "iosInstallStep2": "Tap Share, then \"Add to Home Screen\".",
+    "iosInstallStep3": "Open the installed app and come back to Settings to enable notifications.",
+    "errors": {
+      "missingVapid": "Notifications aren't configured for this environment yet.",
+      "subscribeFailed": "Couldn't subscribe to push notifications.",
+      "unsubscribeFailed": "Couldn't unsubscribe."
     }
   },
   "audit": {

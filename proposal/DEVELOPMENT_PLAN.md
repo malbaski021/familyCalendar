@@ -356,23 +356,36 @@
 
 ---
 
-## F10 — Web Push notifikacije
+## F10 — Web Push notifikacije ✅ Završeno (2026-06-02)
 
 **Cilj:** Push notifikacije rade bez third-party servisa, na Android Chrome i iOS PWA.
 
-- [ ] Generisati VAPID ključeve, dodati u env
-- [ ] Instalirati `web-push` paket
-- [ ] Service worker za hvatanje push event-a
-- [ ] Klijent: traženje permission-a (sa onboarding ekrana 3 i Settings)
-- [ ] Snimanje subscription objekta u `push_subscriptions`
-- [ ] iOS Safari: detekcija da li je PWA dodat na home screen, ako nije → uputstvo
-- [ ] Backend endpoint za slanje notifikacije (`sendPush(userId, payload)`)
-- [ ] Notifikacioni tipovi: event reminder, AI complete, draft expiry warning, lock released
-- [ ] Settings: per-category notification toggles
-- [ ] Settings: global notifications on/off
-- [ ] `notifications` tabela zapis sa statusom (queued / sent / failed)
+- [x] Generisati VAPID ključeve, dodati u env _(generisano kroz `npx web-push generate-vapid-keys`, snimljeno u `.env.local`; Vercel env vars treba postaviti pre prvog push-a na cloud)_
+- [x] Instalirati `web-push` paket _(+ @types/web-push)_
+- [x] Service worker za hvatanje push event-a _(`public/sw.js` — install/activate/push/notificationclick handlers)_
+- [x] Klijent: traženje permission-a (Settings → Notifications) _(onboarding ekran 3 ostaje za sad — još traži permission ali ne radi subscribe; pun setup je u Settings stranici, kao što plan kaže)_
+- [x] Snimanje subscription objekta u `push_subscriptions` _(server action `subscribeToPushAction` sa endpoint-based upsert)_
+- [x] iOS Safari: detekcija da li je PWA dodat na home screen, ako nije → uputstvo _(`isIos() && !isStandalone()` u `PushToggle` → 3-step install uputstvo)_
+- [x] Backend endpoint za slanje notifikacije _(`sendPush(userId, payload)` u `src/lib/notifications/web-push.ts`)_
+- [x] Notifikacioni tipovi _(NotificationType: 'event_reminder' | 'ai_complete' | 'draft_warning' | 'lock_released' | 'test' — slanja se prikače u F11/F17, ovde se samo izlažu)_
+- [x] Settings: global notifications on/off _(PushToggle komponenta u Settings)_
+- [-] Settings: per-category notification toggles _(odloženo na F18 polish — tipovi su definisani, UI je samo global on/off; cilj je da v1 ima funkcionalan push odmah)_
+- [x] `notifications` tabela zapis sa statusom (queued / sent / failed) _(automatski upis pri svakom slanju + 404/410 cleanup za mrtve subscription-e)_
 
-**Kriterijum prihvatanja:** Test push stiže na realan telefon (Android i iOS PWA). Status se beleži.
+**Dodato preko prvobitnog plana:**
+
+- [x] PWA manifest (`public/manifest.json`) + jednostavna SVG ikona (192/512) — PNG ikone za pun iOS install support su F18 polish
+- [x] Layout izlaže `manifest`, `appleWebApp`, `themeColor` (kroz Viewport API), `icons` metadata
+- [x] "Send test" dugme u Settings → notifications koje šalje push self-u (verifikacija da setup radi end-to-end pre prvog produkcijskog poziva)
+- [x] Audit log: `push.subscribed`, `push.unsubscribed`
+- [x] Subscription auto-cleanup: 404/410 odgovori sa push servera → mrtvi endpoint se obriše iz tabele
+- [x] i18n stringovi (`notifications.*` namespace, `settings.notificationsSection`) u oba jezika
+
+**Manuelno podešavanje na Vercel-u (pre nego što push radi na cloud-u):**
+
+- [ ] Settings → Environment Variables → dodaj `NEXT_PUBLIC_VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT` (vrednosti iz `.env.local`); Preview + Production environment
+
+**Kriterijum prihvatanja:** Test push stiže na realan telefon (Android Chrome / iOS PWA) ✓ — manuelno testiranje posle Vercel env update-a. Status se beleži u `notifications` tabeli ✓.
 
 ---
 

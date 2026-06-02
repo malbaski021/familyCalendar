@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { NextIntlClientProvider, hasLocale } from 'next-intl';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { cookies } from 'next/headers';
@@ -34,8 +34,25 @@ export async function generateMetadata({
   return {
     title: t('title'),
     description: t('description'),
+    manifest: '/manifest.json',
+    appleWebApp: {
+      capable: true,
+      statusBarStyle: 'default',
+      title: t('title'),
+    },
+    icons: {
+      icon: [{ url: '/icon-192.svg', type: 'image/svg+xml' }],
+      apple: [{ url: '/icon-192.svg' }],
+    },
   };
 }
+
+export const viewport: Viewport = {
+  themeColor: [
+    { media: '(prefers-color-scheme: light)', color: '#ffffff' },
+    { media: '(prefers-color-scheme: dark)', color: '#0a0a0a' },
+  ],
+};
 
 export default async function LocaleLayout({
   children,
