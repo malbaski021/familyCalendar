@@ -1,4 +1,5 @@
 import 'server-only';
+import { cache } from 'react';
 import { createClient } from '@/lib/supabase/server';
 
 export interface FamilyContext {
@@ -16,7 +17,9 @@ export interface FamilyContext {
  * Users are expected to belong to at most one family in v1; this helper
  * therefore picks the first row deterministically (oldest membership).
  */
-export async function getFamilyContextFor(userId: string): Promise<FamilyContext | null> {
+export const getFamilyContextFor = cache(async function getFamilyContextFor(
+  userId: string,
+): Promise<FamilyContext | null> {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from('family_members')
@@ -34,4 +37,4 @@ export async function getFamilyContextFor(userId: string): Promise<FamilyContext
     familySlug: data.families.slug,
     role: data.role,
   };
-}
+});
