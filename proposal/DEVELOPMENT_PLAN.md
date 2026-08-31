@@ -419,9 +419,24 @@
 
 **CI posle push-a na `develop`:** ceo pipeline zelen — unit 82/82 u 11/11 fajlova, integration **55 testova u 8/8 fajlova**. Ovo je prvi zelen build na `develop` od 2026-07-23.
 
-**Zašto je `develop` bio crven od 2026-07-23:** commit `e0400bd` je pao na integration koraku sa **46 testova i svi sa `code: '42501'`** (`insufficient_privilege`) — uključujući `schema.test.ts`, koji koristi `service_role` i obilazi RLS. Prazan service key, ne greška u kodu: `supabase/setup-cli@v1` je pinovan na `version: latest`, a novi CLI je preimenovao izlaz `supabase status -o env`, pa su `$API_URL` / `$ANON_KEY` / `$SERVICE_ROLE_KEY` u workflow-u ispali prazni (u logu se vidi i `config section [inbucket] is deprecated`). Sa današnjim CLI-jem opet radi, ali **rizik je latentan** — dok je `version: latest` nepinovan, isti tip loma se može ponoviti bez ijedne promene u kodu. Preporuka pre F11: pinovati verziju CLI-ja i/ili dodati fallback na oba imena varijabli u workflow-u.
+**Zašto je `develop` bio crven od 2026-07-23:** commit `e0400bd` je pao na integration koraku sa **46 testova i svi sa `code: '42501'`** (`insufficient_privilege`) — uključujući `schema.test.ts`, koji koristi `service_role` i obilazi RLS. Prazan service key, ne greška u kodu: `supabase/setup-cli@v1` je pinovan na `version: latest`, a novi CLI je preimenovao izlaz `supabase status -o env`, pa su `$API_URL` / `$ANON_KEY` / `$SERVICE_ROLE_KEY` u workflow-u ispali prazni (u logu se vidi i `config section [inbucket] is deprecated`). Sa današnjim CLI-jem opet radi, ali rizik je bio latentan — dok je `version: latest` nepinovan, isti tip loma se može ponoviti bez ijedne promene u kodu.
 
-**Nije pokriveno testovima:** `loadEventsInRange` (`src/lib/calendar/query.ts`) nema **nijedan** test — integration testovi rade direktan Supabase CRUD i ne importuju taj helper. Zeleni CI zato *ne* validira novo `.or()` ograničenje; logika i PostgREST serijalizacija su verifikovane ručno (`or=(recurring_pattern.not.is.null,end_date.gte.X,and(end_date.is.null,start_date.gte.X))`), ali semantika nad pravom bazom je i dalje nepotvrđena. Kandidat za pokrivanje u F18 (ili ranije, ako F11 dira query).
+**Rešeno (F10.1b):**
+
+- [x] `supabase/setup-cli` pinovan na `2.116.0` (stabilan latest u trenutku pinovanja; `2.117.x` je još beta) — verzija se sad diže namerno, ne iznenada.
+- [x] Workflow razrešava `supabase status -o env` kroz sve poznate varijante imena (`API_URL`/`SUPABASE_URL`, `ANON_KEY`/`SUPABASE_ANON_KEY`/`PUBLISHABLE_KEY`, `SERVICE_ROLE_KEY`/`SUPABASE_SERVICE_ROLE_KEY`/`SECRET_KEY`) i **pada odmah, glasno**, ispisujući imena ključeva koje je CLI zaista izvezao (vrednosti redigovane). Logika verifikovana lokalno na 4 scenarija: stara imena, nova imena, nedostajuci service key (lom od 23.07.) i sve prazno.
+
+**`loadEventsInRange` je bio bez ijednog testa** — integration testovi rade direktan Supabase CRUD i nisu importovali taj helper, pa zeleni CI *nije* validirao novo `.or()` ograničenje. To je bila najozbiljnija slepa točka: da je predikat sintaksno neispravan, `loadEventsInRange` bi vratio `[]` i kalendar bi tiho bio prazan, bez greške u logu.
+
+**Rešeno (F10.1b) — refaktor za testabilnost:**
+
+- [x] Čista logika izdvojena u `src/lib/calendar/occurrences.ts`, bez `server-only` i bez Supabase klijenta, pa je dostupna i jsdom unit suite-u i Node integration suite-u. `query.ts` je sad tanak DB sloj (`CalendarEvent` / `EventCategory` se re-eksportuju iz njega da postojeći importi komponenti ostanu netaknuti).
+- [x] `buildRangeFilter(rangeStartStr)` — predikat kao pure funkcija, sa objašnjenjem zašto sva tri disjunkta postoje.
+- [x] `assembleOccurrences(...)` — fan-out serije, primena override-a, preskakanje otkazanih, sortiranje i lock badge; prima injektabilan `now` da lock testovi ne zavise od stvarnog vremena.
+- [x] **19 unit testova** (`occurrences.test.ts`): predikat, non-recurring in/out of range, multi-day preko granice, HH:MM skraćivanje, fan-out weekly serije, per-instance override, otkazana instanca, `recurring_end_date` clipping, monthly drift end-to-end, 5 lock scenarija, i redosled sortiranja.
+- [x] **Integration test** (`event-range.test.ts`) verifikuje **SQL semantiku** predikata nad pravim Postgresom, koristeći isti `buildRangeFilter` iz produkcije da test ne može da odluta od koda. Šest fixture-a u 2031. (van seed podataka) pokrivaju svaki disjunkt, plus test koji dokazuje da uklanjanje `end_date.is.null` grane **tiho gubi sve jednodnevne događaje** — dokumentuje zašto se filter ne sme "pojednostaviti".
+
+Unit suite posle: **101 test u 12/12 fajlova**.
 
 ---
 
