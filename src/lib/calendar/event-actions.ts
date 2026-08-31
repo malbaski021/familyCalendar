@@ -16,6 +16,12 @@ async function findFamilyForCurrentUser(): Promise<
     .from('family_members')
     .select('family_id')
     .eq('user_id', user.authId)
+    // Users belong to at most one family in v1, but `family_members` is only
+    // unique on (family_id, user_id) — nothing stops a second membership. Pick
+    // the oldest deterministically so a bare `maybeSingle()` can't fail with
+    // "multiple rows returned". Matches `getFamilyContextFor`.
+    .order('joined_at', { ascending: true })
+    .limit(1)
     .maybeSingle();
   if (error) return { ok: false, error: error.message };
   if (!data) return { ok: false, error: 'You are not part of a family yet' };

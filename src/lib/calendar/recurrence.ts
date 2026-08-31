@@ -30,24 +30,34 @@ export function expandOccurrences(input: {
   const hardLimit = isBefore(seriesEnd, input.rangeEnd) ? seriesEnd : input.rangeEnd;
 
   const dates: Date[] = [];
-  let cursor = start;
   // Safety cap so a malformed pattern can't loop indefinitely.
-  let iterations = 0;
-  while (cursor <= hardLimit && iterations < 5000) {
+  let n = 0;
+  let cursor = start;
+  while (cursor <= hardLimit && n < 5000) {
     if (cursor >= input.rangeStart) dates.push(cursor);
-    cursor = step(cursor, input.pattern);
-    iterations += 1;
+    n += 1;
+    cursor = occurrenceAt(start, input.pattern, n);
   }
   return dates;
 }
 
-function step(date: Date, pattern: RecurrencePattern): Date {
+/**
+ * The n-th occurrence of a series, always computed from the ORIGINAL start
+ * date rather than by stepping off the previous occurrence.
+ *
+ * This matters for `monthly`: `addMonths` clamps to the last valid day of the
+ * target month, so a series starting Jan 31 steps to Feb 28 — and stepping
+ * again from Feb 28 would yield Mar 28, permanently losing the 31st. Anchoring
+ * to `start` keeps the intended day-of-month and only clamps in short months
+ * (Jan 31 → Feb 28 → Mar 31 → Apr 30 → May 31).
+ */
+function occurrenceAt(start: Date, pattern: RecurrencePattern, n: number): Date {
   switch (pattern) {
     case 'daily':
-      return addDays(date, 1);
+      return addDays(start, n);
     case 'weekly':
-      return addWeeks(date, 1);
+      return addWeeks(start, n);
     case 'monthly':
-      return addMonths(date, 1);
+      return addMonths(start, n);
   }
 }

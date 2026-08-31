@@ -389,6 +389,38 @@
 
 ---
 
+## F10.1 — Bug fix pass pre F11 ✅ Završeno (2026-08-31)
+
+**Cilj:** Kompletna analiza F0–F10 pre ulaska u AI fazu — pokretanje svih quality gate-ova i ispravka svega što je nađeno, da F11 ne gradi na klimavim temeljima.
+
+**Nalazi verifikovani pokretanjem, ne čitanjem koda.** Stanje pre: `typecheck` ✓, `lint` ✓, `build` ✓, ali `test` exit 1 i `format:check` exit 1.
+
+### Pravi bugovi
+
+- [x] **Monthly recurrence drift** (`src/lib/calendar/recurrence.ts`) — `expandOccurrences` je koračao iterativno od kursora, pa `addMonths` trajno gubi dan meseca: serija od 31.01. davala je `31, 28, 28, 28, 28` umesto `31, 28, 31, 30, 31`. Uveden `occurrenceAt(start, pattern, n)` koji n-tu pojavu računa od originalnog `start` datuma; clamp se sad dešava samo u kratkim mesecima. **+2 regression testa** (31. i 30. u mesecu).
+- [x] **Multi-family `maybeSingle()` crash** — `family_members` je unique samo na `(family_id, user_id)`, pa korisnik može u više porodica, a `consumeInvite` to ne sprečava. `event-actions.ts`, `lock-actions.ts`, `draft-actions.ts` i `children-actions.ts` su zvali `.maybeSingle()` bez `limit(1)` → PGRST116 i sve akcije pucaju. Sva četiri poravnata sa `getFamilyContextFor` (`.order('joined_at').limit(1)`).
+- [x] **Vitest tiho preskakao test fajl** — `signup-form.test.tsx` nije startovao worker u punom setu (`Timeout waiting for worker to respond`), a suite je prijavljivao `Test Files 10 passed` uz exit 1; 4 testa se nisu izvršavala uopšte. Uzrok: ponovna izgradnja jsdom okruženja po fajlu. Prelaz na `pool: 'forks'` + `maxWorkers: 1` + `isolate: false`, uz eksplicitan `cleanup()` u `src/test/setup.ts` (bez njega RTL registruje auto-cleanup samo iz prvog fajla i DOM se akumulira između fajlova).
+
+### Sigurnost i performanse
+
+- [x] **`loadEventsInRange` bez donje granice** (`src/lib/calendar/query.ts`) — svaki prikaz meseca dovlačio je celu istoriju porodice i filtrirao u JS-u. Dodat `.or()` sa tri disjunkta: recurring ostaje neograničen (master row može biti star godinama), non-recurring sa `end_date` se hvata preko `end_date >= rangeStart`, a bez `end_date` preko `start_date` (jer je `NULL >= x` u SQL-u NULL, ne false).
+- [x] **Cron endpoint fail-closed** (`src/app/api/cron/keep-warm/route.ts`) — provera `CRON_SECRET` je bila uslovna, pa je endpoint bio javno pingable ako varijabla nije postavljena. Sad vraća 503 u produkciji kad secret nije konfigurisan; lokalno ostaje opcion. `CRON_SECRET` dodat u `.env.example` (ranije se koristio u kodu, a nije bio dokumentovan).
+
+### Developer experience
+
+- [x] **`.gitattributes`** (`* text=auto eol=lf` + binary liste) — repo čuva LF, ali Windows checkout sa `core.autocrlf=true` pravi CRLF, pa je `format:check` padao na svih 90 fajlova lokalno dok je na Linux CI-u prolazio. Radno stablo normalizovano bez ijedne promene sadržaja u git-u.
+- [x] **Locale se gubio na auth redirect-u** (`src/proxy.ts`) — redirect je hardkodovao `routing.defaultLocale`, pa je izlogovan korisnik sa `/sr-Latn/calendar` sletao na `/en/login`. Dodat `localeFromPath()`.
+
+### Potvrđeno zdravo (bez izmena)
+
+16/16 tabela, 54 RLS politike, RLS aktivan na svim tabelama, i18n paritet **244/244 ključa** u oba jezika, nula `any`, nula `@ts-ignore`, nula TODO/FIXME, 2 namerna `console.error` u fail-safe putevima. Tabele `ai_queue`, `weather_cache`, `event_shares`, `event_reminders` postoje iz F1 i čekaju F11–F17 — arhitektura je zaista pripremljena.
+
+**Kriterijum prihvatanja:** `typecheck` ✓ · `lint` ✓ · `format:check` ✓ (prvi put lokalno) · `test` **82/82 u 11/11 fajlova, exit 0** ✓ · `build` ✓. Test suite ubrzan 199s → 7.6s i dva uzastopna prolaza potvrdila stabilnost.
+
+**Ostaje za verifikaciju:** integration suite (`npm run test:integration`) nije pokrenut — Docker nije bio dostupan lokalno. Jedina promena koja to zahteva je ograničenje `loadEventsInRange` query-ja; logika i PostgREST serijalizacija su verifikovane, ali CI mora da potvrdi semantiku nad pravom bazom.
+
+---
+
 ## F11 — AI Multi-Agent System (Orchestrator + 3 agenta)
 
 **Cilj:** AI predlaže kategoriju, dete, podsetnike i otkriva duplikate. Groq pad ne blokira save.

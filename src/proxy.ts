@@ -22,12 +22,23 @@ function stripLocale(pathname: string): string {
   return pathname;
 }
 
+/** The locale prefix already present in the URL, or the default when there is none. */
+function localeFromPath(pathname: string): string {
+  for (const locale of routing.locales) {
+    if (pathname === `/${locale}` || pathname.startsWith(`/${locale}/`)) return locale;
+  }
+  return routing.defaultLocale;
+}
+
 export default async function middleware(request: NextRequest) {
   // 1. Refresh Supabase session (sets cookies on the response).
   const { user, response: authResponse } = await updateSession(request);
 
   // 2. Apply auth guards based on the path (locale-agnostic).
   const pathWithoutLocale = stripLocale(request.nextUrl.pathname);
+  // Keep the visitor in the locale they were already browsing — redirecting a
+  // `/sr-Latn/...` request to `/en/login` would silently switch their language.
+  const locale = localeFromPath(request.nextUrl.pathname);
   const isProtected = PROTECTED_PATHS.some(
     (p) => pathWithoutLocale === p || pathWithoutLocale.startsWith(`${p}/`),
   );
@@ -37,14 +48,14 @@ export default async function middleware(request: NextRequest) {
 
   if (isProtected && !user) {
     const redirectUrl = request.nextUrl.clone();
-    redirectUrl.pathname = `/${routing.defaultLocale}/login`;
+    redirectUrl.pathname = `/${locale}/login`;
     redirectUrl.searchParams.set('redirectTo', request.nextUrl.pathname);
     return NextResponse.redirect(redirectUrl);
   }
 
   if (isGuestOnly && user) {
     const redirectUrl = request.nextUrl.clone();
-    redirectUrl.pathname = `/${routing.defaultLocale}/calendar`;
+    redirectUrl.pathname = `/${locale}/calendar`;
     redirectUrl.search = '';
     return NextResponse.redirect(redirectUrl);
   }

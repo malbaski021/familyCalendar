@@ -17,6 +17,10 @@ async function findFamilyForCurrentUser(): Promise<
     .from('family_members')
     .select('family_id')
     .eq('user_id', user.authId)
+    // See `getFamilyContextFor`: pick the oldest membership deterministically
+    // so a second family row can't turn this into a "multiple rows" error.
+    .order('joined_at', { ascending: true })
+    .limit(1)
     .maybeSingle();
   if (error) return { ok: false, error: error.message };
   if (!data) return { ok: false, error: 'You are not part of a family yet' };

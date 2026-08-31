@@ -59,7 +59,18 @@ export async function loadEventsInRange(
       'id, title, category, start_date, end_date, start_time, end_time, location, notes, recurring_pattern, recurring_end_date, locked_by, locked_at',
     )
     .eq('family_id', familyId)
-    .lte('start_date', endStr);
+    .lte('start_date', endStr)
+    // Lower bound, so rendering one month doesn't drag the family's whole
+    // history over the wire. Three disjuncts:
+    //   1. recurring series — must stay unbounded, the master row's start_date
+    //      can predate the range by years and still occur inside it;
+    //   2. non-recurring with an end_date — overlaps when it ends at/after the
+    //      range start (covers multi-day events straddling the boundary);
+    //   3. non-recurring without an end_date — single day, so start_date alone
+    //      decides. Needed because `end_date >= x` is NULL (not true) in SQL.
+    .or(
+      `recurring_pattern.not.is.null,end_date.gte.${startStr},and(end_date.is.null,start_date.gte.${startStr})`,
+    );
   if (error || !data) return [];
 
   const eventIds = data.map((e) => e.id);

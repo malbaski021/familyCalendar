@@ -57,6 +57,29 @@ describe('expandOccurrences', () => {
     expect(dates.map((d) => d.getMonth())).toEqual([0, 1, 2, 3, 4, 5]);
   });
 
+  it('monthly series anchored on the 31st keeps the day-of-month instead of drifting', () => {
+    const dates = expandOccurrences({
+      startDate: '2026-01-31',
+      pattern: 'monthly',
+      endDate: null,
+      rangeStart: new Date(2026, 0, 1),
+      rangeEnd: new Date(2026, 4, 31),
+    });
+    // Feb clamps to 28 (no 31st), but March must return to 31 — not 28.
+    expect(dates.map((d) => d.getDate())).toEqual([31, 28, 31, 30, 31]);
+  });
+
+  it('monthly series anchored on the 30th clamps only in February', () => {
+    const dates = expandOccurrences({
+      startDate: '2026-03-30',
+      pattern: 'monthly',
+      endDate: null,
+      rangeStart: new Date(2026, 2, 1),
+      rangeEnd: new Date(2026, 5, 30),
+    });
+    expect(dates.map((d) => d.getDate())).toEqual([30, 30, 30, 30]);
+  });
+
   it('series whose start is before the range still produces in-range occurrences only', () => {
     const dates = expandOccurrences({
       startDate: '2025-12-15',
