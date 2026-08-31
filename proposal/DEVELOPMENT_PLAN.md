@@ -417,7 +417,11 @@
 
 **Kriterijum prihvatanja:** `typecheck` ✓ · `lint` ✓ · `format:check` ✓ (prvi put lokalno) · `test` **82/82 u 11/11 fajlova, exit 0** ✓ · `build` ✓. Test suite ubrzan 199s → 7.6s i dva uzastopna prolaza potvrdila stabilnost.
 
-**Ostaje za verifikaciju:** integration suite (`npm run test:integration`) nije pokrenut — Docker nije bio dostupan lokalno. Jedina promena koja to zahteva je ograničenje `loadEventsInRange` query-ja; logika i PostgREST serijalizacija su verifikovane, ali CI mora da potvrdi semantiku nad pravom bazom.
+**CI posle push-a na `develop`:** ceo pipeline zelen — unit 82/82 u 11/11 fajlova, integration **55 testova u 8/8 fajlova**. Ovo je prvi zelen build na `develop` od 2026-07-23.
+
+**Zašto je `develop` bio crven od 2026-07-23:** commit `e0400bd` je pao na integration koraku sa **46 testova i svi sa `code: '42501'`** (`insufficient_privilege`) — uključujući `schema.test.ts`, koji koristi `service_role` i obilazi RLS. Prazan service key, ne greška u kodu: `supabase/setup-cli@v1` je pinovan na `version: latest`, a novi CLI je preimenovao izlaz `supabase status -o env`, pa su `$API_URL` / `$ANON_KEY` / `$SERVICE_ROLE_KEY` u workflow-u ispali prazni (u logu se vidi i `config section [inbucket] is deprecated`). Sa današnjim CLI-jem opet radi, ali **rizik je latentan** — dok je `version: latest` nepinovan, isti tip loma se može ponoviti bez ijedne promene u kodu. Preporuka pre F11: pinovati verziju CLI-ja i/ili dodati fallback na oba imena varijabli u workflow-u.
+
+**Nije pokriveno testovima:** `loadEventsInRange` (`src/lib/calendar/query.ts`) nema **nijedan** test — integration testovi rade direktan Supabase CRUD i ne importuju taj helper. Zeleni CI zato *ne* validira novo `.or()` ograničenje; logika i PostgREST serijalizacija su verifikovane ručno (`or=(recurring_pattern.not.is.null,end_date.gte.X,and(end_date.is.null,start_date.gte.X))`), ali semantika nad pravom bazom je i dalje nepotvrđena. Kandidat za pokrivanje u F18 (ili ranije, ako F11 dira query).
 
 ---
 
