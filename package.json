@@ -13,6 +13,7 @@
     "test": "vitest",
     "test:ci": "vitest run",
     "test:integration": "vitest run --config vitest.integration.config.ts",
+    "test:ai": "vitest run --config vitest.ai.config.ts",
     "db:types": "supabase gen types typescript --linked --schema public > src/types/database.ts",
     "db:reset": "supabase db reset --local",
     "db:start": "supabase start",

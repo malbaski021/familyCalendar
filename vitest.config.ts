@@ -19,7 +19,9 @@ export default defineConfig({
     maxWorkers: 1,
     isolate: false,
     fileParallelism: false,
-    exclude: ['node_modules', 'dist', '.next', 'src/test/integration/**'],
+    // `src/test/ai/**` is the opt-in prompt-quality harness (`npm run test:ai`).
+    // It calls the real Groq API, so it must never run here or in CI.
+    exclude: ['node_modules', 'dist', '.next', 'src/test/integration/**', 'src/test/ai/**'],
   },
   resolve: {
     alias: {

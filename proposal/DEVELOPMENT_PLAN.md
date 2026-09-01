@@ -502,6 +502,10 @@ Unit suite posle: **97 testova u 11/11 fajlova** (−4, obrisani zajedno sa `Sig
 
 Testovi posle ovog inkrementa: **128 u 13/13 fajlova** (+31).
 
+**Prompt-quality harness (`npm run test:ai`).** Prva verzija prompta definisala je „match" kao *competitive fixture*, pa je „Luka fudbal subota" vraćala `other` — ispravno po promptu, pogrešno po proizvodu, i **nijedan mock test to ne bi uhvatio**. Zato postoji zaseban, opt-in harness koji zove pravi model: `vitest.ai.config.ts` + `src/test/ai/prompt-quality.test.ts`, 6 slučajeva sa tvrdim asercijama (kriterijum iz plana doslovno, trening kao sport, zubar, nepoznato dete → `newChildNames`, srpski padež „za Luku", i kasnija pojava iste aktivnosti koja **nije** duplikat). Meri i latenciju naspram budžeta.
+
+Namerno **van CI-ja i van default suite-a** (`src/test/ai/**` je u `exclude`): troši free-tier kvotu i traži ključ. Bez `GROQ_API_KEY` se čisto preskače (exit 0), pa nikom ne pravi lažno crveno. Pokreni ga posle svake izmene u `src/lib/ai/agents/**` ili `prompt.ts`.
+
 **Sledeće:** `ai_queue` upis + migracija za realtime publication (trenutno je u publikaciji samo `events`), pa UI za predloge.
 
 ---
