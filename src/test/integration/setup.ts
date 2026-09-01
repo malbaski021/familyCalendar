@@ -18,4 +18,12 @@ beforeAll(() => {
         `Run \`supabase status\` and copy the values into .env.local, or run \`npm run db:start\` first.`,
     );
   }
+
+  // Point the app's own server helpers at the local stack. `createServiceClient`
+  // reads the production variable names, so without this bridge any test that
+  // imports real server code (rather than building its own client) would fail
+  // against the developer's or CI's absent cloud credentials.
+  process.env.NEXT_PUBLIC_SUPABASE_URL = process.env.SUPABASE_LOCAL_URL;
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = process.env.SUPABASE_LOCAL_ANON_KEY;
+  process.env.SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_LOCAL_SERVICE_KEY;
 });

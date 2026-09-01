@@ -481,12 +481,12 @@ Unit suite posle: **97 testova u 11/11 fajlova** (−4, obrisani zajedno sa `Sig
 - [ ] UI: inline prikaz predloga (auto-fill kategorije/tag-a, warning za duplikat, predlog reminder-a sa potvrdom)
 - [ ] "New child detected → add to family list?" prompt _(šema već vraća `newChildNames` odvojeno od `childIds`, da AI ne može tiho da izmisli dete)_
 - [x] Sinhroni put: 3s timeout na Groq poziv _(`AI_SYNC_TIMEOUT_MS`; orchestrator trka poziv protiv budžeta, pa i pozivalac koji ignoriše `AbortSignal` ne može da zadrži save)_
-- [ ] Ako timeout/fail: task ide u `ai_queue` (status: pending) _(orchestrator već vraća `queued`/`unavailable`; upis u tabelu dolazi sa sledećim inkrementom)_
-- [ ] Supabase Realtime trigger na novi `ai_queue` zapis → procesira u pozadini
-- [ ] Status lifecycle: pending → processing → done/failed
-- [ ] Push notifikacija kad queued task završi
-- [ ] Zaštita od duplog processing-a (status check)
-- [ ] Audit log za sve AI akcije (suggested / accepted / rejected / queued)
+- [x] Ako timeout/fail: task ide u `ai_queue` (status: pending) _(`enqueueAiTask`; payload je samodovoljan — nosi `requestedBy`, `familyId`, `reason` i ceo `input`, jer `ai_queue` nema `user_id` kolonu)_
+- [x] Supabase Realtime: `ai_queue` u publication _(migracija `20260901120000`, plus parcijalni indeks `idx_ai_queue_pending`)_ — _klijentski subscriber koji poziva obradu dolazi sa UI inkrementom_
+- [x] Status lifecycle: pending → processing → done/failed _(`claimTask` / `processQueuedTask` / `settleFailed`, uz `attempts` i `processed_at`)_
+- [x] Push notifikacija kad queued task završi _(`sendPush` tip `ai_complete`; best-effort — pad push-a ne vraća red u `failed`)_
+- [x] Zaštita od duplog processing-a (status check) _(atomičan `update ... where status='pending'` — od dva trkača tačno jedan dobije red)_
+- [x] Audit log za AI akcije _(`ai.queued` kao `system`, `ai.completed` kao **`ai`** actor, `ai.failed` kao `system`)_ — _`accepted`/`rejected` dolaze sa UI-jem_
 
 **Kriterijum prihvatanja:** Save događaja sa naslovom "Luka football Saturday" automatski popuni kategoriju Match i tag Luka, prikaže duplikat ako postoji, predloži reminder-e. Save NIKAD nije blokiran AI-jem.
 
@@ -506,7 +506,19 @@ Testovi posle ovog inkrementa: **128 u 13/13 fajlova** (+31).
 
 Namerno **van CI-ja i van default suite-a** (`src/test/ai/**` je u `exclude`): troši free-tier kvotu i traži ključ. Bez `GROQ_API_KEY` se čisto preskače (exit 0), pa nikom ne pravi lažno crveno. Pokreni ga posle svake izmene u `src/lib/ai/agents/**` ili `prompt.ts`.
 
-**Sledeće:** `ai_queue` upis + migracija za realtime publication (trenutno je u publikaciji samo `events`), pa UI za predloge.
+### Napredak (2026-09-01, drugi inkrement) — `ai_queue`
+
+**Duplo procesiranje je rešeno atomičnim claim-om, ne proverom-pa-upisom.** `claimTask` radi `update ... set status='processing' where id=? and status='pending'` i vraća red samo ako je UPDATE zahvatio red. Od dva trkača — dva otvorena taba, ili tab i F17 cron — tačno jedan dobije posao. Integration test to proverava i sekvencijalno i sa `Promise.all`.
+
+**Payload je samodovoljan.** `ai_queue` nema `user_id` kolonu, pa `requestedBy` (kome se šalje push), `familyId` i `reason` idu u `tasks` jsonb uz ceo `input`. Pozadinski radnik može da ponovi zahtev bez ponovnog izvođenja porodičnog konteksta. Verzionisan je (`version: 1`) i validira se Zod-om — red koji je upisala starija verzija aplikacije se **označi kao failed umesto da se pročita napola**.
+
+**Integration testovi sad mogu da uvezu prave server module.** `vitest.integration.config.ts` dobio je alias za `server-only`, a `src/test/integration/setup.ts` premošćava `SUPABASE_LOCAL_*` → imena koja `createServiceClient` očekuje. Do sada su integration testovi mogli samo da grade sopstveni Supabase klijent (zbog čega `loadEventsInRange` i nije bio pokriven); sada testiraju stvarni kod.
+
+Groq se injektuje kroz `deps.call`, pa ceo lifecycle radi u CI-ju **bez API ključa**. Kvalitet modela nije predmet ovih testova — to je `npm run test:ai`.
+
+Testovi posle ovog inkrementa: **135 unit u 14/14 fajlova** + 11 novih integration slučajeva.
+
+**Sledeće:** UI za predloge — inline prikaz, auto-fill kategorije/deteta, warning za duplikat, potvrda podsetnika, „novo dete → dodati u porodicu?", plus klijentski realtime subscriber koji pokreće obradu reda.
 
 ---
 

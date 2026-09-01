@@ -14,6 +14,10 @@ export default defineConfig({
   },
   resolve: {
     alias: {
+      // Lets integration tests import real `server-only` modules (queue,
+      // audit, service client) instead of re-implementing their logic against
+      // a raw Supabase client. The marker has no runtime behaviour.
+      'server-only': path.resolve(__dirname, './src/test/ai/server-only.stub.ts'),
       '@': path.resolve(__dirname, './src'),
     },
   },
