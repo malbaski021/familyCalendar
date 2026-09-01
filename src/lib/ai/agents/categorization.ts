@@ -11,10 +11,17 @@ export const categorizationInstruction = `## Task 2 — category and children
 Pick the single best "category" for the event from exactly these values:
 birthday, performance, match, school, doctor, other.
 
-Guidance: "match" is a competitive fixture or game; "performance" is a recital,
-show or concert; "school" covers classes, parent meetings and school trips;
-"doctor" covers medical and dental appointments; "birthday" covers parties and
-birthdays; "other" is the fallback — use it rather than forcing a bad fit.
+Guidance:
+- "match" — any sporting or physical activity: fixtures and games, but equally
+  training sessions, practice, and regular club activities. There is no
+  separate sports category, so "Luka football Saturday" and "fudbal trening"
+  are both "match".
+- "performance" — recitals, shows, concerts, and their rehearsals.
+- "school" — classes, parent meetings, exams and school trips.
+- "doctor" — medical and dental appointments, check-ups, vaccinations.
+- "birthday" — birthdays and parties.
+- "other" — genuine fallback only. Do not reach for it when one of the
+  categories above plausibly fits.
 
 Then decide which of the family's children the event is about:
 - "childIds": ids from the "Family children" list only. Empty array if the
