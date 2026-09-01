@@ -466,17 +466,22 @@ Unit suite posle: **97 testova u 11/11 fajlova** (−4, obrisani zajedno sa `Sig
 
 **Cilj:** AI predlaže kategoriju, dete, podsetnike i otkriva duplikate. Groq pad ne blokira save.
 
-- [ ] Groq API key u env, klijent helper
-- [ ] Strukturisani JSON tipovi za task/result svakog agenta
-- [ ] Orchestrator: paralelno dispatch-uje task-ove ka agentima
-- [ ] Agent 1 — Duplicate Detection (title, datum, time overlap, semantika)
-- [ ] Agent 2 — Categorization & Tagging + child detection (sa porodičnom listom dece)
-- [ ] Agent 3 — Smart Reminders (timing prema kategoriji)
-- [ ] Orchestrator: assembluje rezultate u `user_message` na jeziku korisnika
+> **Odstupanje od prvobitnog plana — jedan poziv umesto tri (odobreno 2026-09-01).**
+> Plan je tražio da orchestrator „paralelno dispatch-uje task-ove ka agentima", tj. 3 zahteva po svakom snimanju događaja. Projekat radi **isključivo na Groq free tier-u** (bez ijednog uloženog dinara, što je i poenta), gde je za `openai/gpt-oss-120b` limit **30 RPM / 8.000 TPM / 1.000 zahteva dnevno**. Usko grlo su tokeni po minuti, a tri poziva dele skoro sav kontekst (isti događaj, ista deca, isti kandidati) — pa bi trostruko plaćanje istog konteksta bilo čisto rasipanje kvote.
+>
+> Zato: **tri agenta ostaju tri odvojena modula** (`src/lib/ai/agents/*`), svaki sa svojim promptom i svojom sekcijom u šemi odgovora, ali ih orchestrator šalje kao **jedan zahtev sa kompozitnim JSON odgovorom**. Konceptualni model iz proposala je netaknut, potrošnja je 3× manja, a i 3s budžetu jedan round-trip mnogo bolje leži. Vraćanje na 3 paralelna poziva je izmena samo u orchestratoru, ako se ikad pređe na plaćeni plan.
+
+- [x] Groq API key u env, klijent helper _(`src/lib/ai/groq-client.ts` — OpenAI-kompatibilan REST endpoint preko `fetch`, bez SDK zavisnosti; lenja inicijalizacija da `build` i CI rade bez ključa)_
+- [x] Strukturisani JSON tipovi za task/result svakog agenta _(`src/lib/ai/schemas.ts` — Zod šeme po agentu + kompozitna `aiSuggestionSchema`)_
+- [x] Orchestrator: ~~paralelno dispatch-uje~~ **spaja task-ove u jedan zahtev** _(`src/lib/ai/orchestrate.ts`; vidi odstupanje iznad)_
+- [x] Agent 1 — Duplicate Detection (title, datum, time overlap, semantika) _(`agents/duplicates.ts`; kandidati se pre-filtriraju u SQL-u na ±3 dana, max 8 — AI sudi samo semantiku, ne skenira kalendar)_
+- [x] Agent 2 — Categorization & Tagging + child detection (sa porodičnom listom dece) _(`agents/categorization.ts`; prompt pokriva srpske padeže — „Luki", „Lukin" → „Luka")_
+- [x] Agent 3 — Smart Reminders (timing prema kategoriji) _(`agents/reminders.ts`)_
+- [x] Orchestrator: assembluje rezultate u `user_message` na jeziku korisnika _(`buildSystemPrompt(locale)`)_
 - [ ] UI: inline prikaz predloga (auto-fill kategorije/tag-a, warning za duplikat, predlog reminder-a sa potvrdom)
-- [ ] "New child detected → add to family list?" prompt
-- [ ] Sinhroni put: 3s timeout na Groq poziv
-- [ ] Ako timeout/fail: task ide u `ai_queue` (status: pending)
+- [ ] "New child detected → add to family list?" prompt _(šema već vraća `newChildNames` odvojeno od `childIds`, da AI ne može tiho da izmisli dete)_
+- [x] Sinhroni put: 3s timeout na Groq poziv _(`AI_SYNC_TIMEOUT_MS`; orchestrator trka poziv protiv budžeta, pa i pozivalac koji ignoriše `AbortSignal` ne može da zadrži save)_
+- [ ] Ako timeout/fail: task ide u `ai_queue` (status: pending) _(orchestrator već vraća `queued`/`unavailable`; upis u tabelu dolazi sa sledećim inkrementom)_
 - [ ] Supabase Realtime trigger na novi `ai_queue` zapis → procesira u pozadini
 - [ ] Status lifecycle: pending → processing → done/failed
 - [ ] Push notifikacija kad queued task završi
@@ -484,6 +489,20 @@ Unit suite posle: **97 testova u 11/11 fajlova** (−4, obrisani zajedno sa `Sig
 - [ ] Audit log za sve AI akcije (suggested / accepted / rejected / queued)
 
 **Kriterijum prihvatanja:** Save događaja sa naslovom "Luka football Saturday" automatski popuni kategoriju Match i tag Luka, prikaže duplikat ako postoji, predloži reminder-e. Save NIKAD nije blokiran AI-jem.
+
+### Napredak (2026-09-01) — jezgro postavljeno
+
+**Granica „save nikad nije blokiran" je postavljena prva i zaključana testovima.** `orchestrate()` nema error varijantu u povratnom tipu — svaki otkaz je ili `queued` (vredi ponoviti) ili `unavailable` (ne vredi). Pokriveni scenariji: timeout, pozivalac koji baca izuzetak, 429, mrežni pad, prazan odgovor, 5xx, neupotrebljiv sadržaj, 400 i nedostajući ključ. Poseban test dokazuje da se sve razreši u budžetu **i kad pozivalac ignoriše `AbortSignal`**.
+
+**Zaštita od halucinacija.** `parseSuggestions` unakrsno proverava svaki id sa onim što je modelu poslato: izmišljen `childId` se odbacuje, a `matchEventId` koji ne postoji među kandidatima gasi i sam `isDuplicate` flag — inače bi UI upozoravao na duplikat koji korisnik ne može da otvori.
+
+**Testabilnost bez mreže i bez ključa.** `orchestrate` prima pozivaoca kroz `deps.call` (tip `GroqCall`), pa se svi režimi otkaza testiraju bez `server-only`, bez mreže i bez `GROQ_API_KEY`. CI namerno nema ključ — pipeline ne sme da zavisi od servisa sa dnevnom kvotom, a odsustvo ključa je ionako put koji mora da radi. Verifikovano: `next build` prolazi bez `GROQ_API_KEY`.
+
+**Model:** `openai/gpt-oss-120b`, promenljiv kroz `GROQ_MODEL` bez deploya. Fallback `llama-3.1-8b-instant` (slabiji, ali 14.400 zahteva dnevno umesto 1.000).
+
+Testovi posle ovog inkrementa: **128 u 13/13 fajlova** (+31).
+
+**Sledeće:** `ai_queue` upis + migracija za realtime publication (trenutno je u publikaciji samo `events`), pa UI za predloge.
 
 ---
 
