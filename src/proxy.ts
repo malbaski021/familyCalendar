@@ -12,7 +12,10 @@ const PROTECTED_PATHS = ['/calendar', '/settings', '/admin', '/onboarding', '/pr
 
 // Routes that should redirect to /calendar when the user is already signed in
 // (logged-in users should not see login forms again).
-const GUEST_ONLY_PATHS = ['/login', '/signup', '/forgot-password'];
+// `/signup` is absent on purpose — registration is invite-only, so the route
+// no longer exists. Invite acceptance lives under `/invite/[role]/[token]`,
+// which must stay reachable while signed out and is therefore not listed here.
+const GUEST_ONLY_PATHS = ['/login', '/forgot-password'];
 
 function stripLocale(pathname: string): string {
   for (const locale of routing.locales) {

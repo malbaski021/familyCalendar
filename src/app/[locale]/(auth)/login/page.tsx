@@ -29,16 +29,6 @@ export default async function LoginPage({ params }: Props) {
         >
           {t('signIn.forgotPassword')}
         </Link>
-        <p>
-          {t('signIn.noAccount')}{' '}
-          <Link
-            href="/signup"
-            className="underline-offset-4 hover:underline"
-            data-testid="login-page-signup-link"
-          >
-            {t('signIn.signUpLink')}
-          </Link>
-        </p>
       </div>
     </div>
   );

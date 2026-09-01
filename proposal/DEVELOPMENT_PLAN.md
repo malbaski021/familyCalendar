@@ -438,6 +438,28 @@
 
 Unit suite posle: **101 test u 12/12 fajlova**.
 
+### F10.1c — Zatvaranje otvorene `/signup` rute (eskalacija privilegija)
+
+**Nalaz.** F2 je uveo `/signup` kao *privremenu* rutu, a F3-ov kriterijum prihvatanja je bio „sva registracija ide isključivo kroz invite linkove" — ali ruta je ostala javna, i login stranica joj je linkovala. Kombinovano sa `SUPER_ADMIN_EMAIL`, koji je hardkodovan i javan na dva mesta (`src/lib/auth/super-admin.ts` i migracija `20260527120000`), to je davalo lanac: bilo ko → `/signup` → registracija sa super-admin email-om → `signUpAction` → `ensureSuperAdmin()` → `role='admin'` preko service-role klijenta.
+
+DB trigger `users_enforce_super_admin` ovo **ne zaustavlja** — on proverava samo da je email *baš taj* i da admin postoji *samo jedan*; onaj ko se registruje *kao* taj email prolazi obe provere. Jedina stvarna brava je bila to što Supabase Auth odbija duplikat email-a, tj. rupa je zatvorena samo zato što super-admin nalog već postoji na produkciji.
+
+**Urađeno:**
+
+- [x] Obrisana ruta `src/app/[locale]/(auth)/signup/page.tsx`, komponenta `SignUpForm` i njen test
+- [x] Uklonjen `signUpAction` iz `src/lib/auth/actions.ts` (jedini potrošač je bila obrisana forma); na njegovom mestu stoji komentar zašto self-service registracije namerno nema
+- [x] Uklonjen link „Nemaš nalog? Registruj se" sa login stranice
+- [x] `/signup` izbačen iz `GUEST_ONLY_PATHS` u `src/proxy.ts`
+- [x] Očišćeno 6 mrtvih i18n ključeva u oba jezika (`signUp.title/subtitle/haveAccount/loginLink`, `signIn.noAccount/signUpLink`) — paritet 244 → **238/238**
+
+**Netaknuto:** `signUpSchema` i `signUp.submit/submitting/success` ostaju — deli ih `AcceptInviteForm`. `ensureSuperAdmin` i dalje živi u `loginAction`, pa se promocija super-admina odvija pri prijavi.
+
+**Ostatak rizika (svesno prihvaćen).** Brisanje rute uklanja UI put, ali Supabase Auth endpoint `/auth/v1/signup` je i dalje otvoren — anon ključ je javan po dizajnu. Neko može direktno preko API-ja da registruje nalog, pa da se prijavi kroz UI i `loginAction` → `ensureSuperAdmin()` bi ga promovisao **ako** je email baš super-adminov. To ostaje blokirano činjenicom da taj nalog već postoji.
+
+**Isključivanje registracije u Supabase dashboard-u NIJE opcija kakva jeste** — `acceptInviteAction` koristi `supabase.auth.signUp()` sa anon klijentom, pa bi to polomilo invite flow. Da bi se registracija mogla ugasiti na nivou Auth-a, `acceptInviteAction` bi prvo morao da pređe na `service_role` + `auth.admin.createUser()` (uz naknadni `signInWithPassword` da uspostavi sesiju). Kandidat za F18 hardening; nije rađeno sada jer menja auth putanju invite flow-a.
+
+Unit suite posle: **97 testova u 11/11 fajlova** (−4, obrisani zajedno sa `SignUpForm`).
+
 ---
 
 ## F11 — AI Multi-Agent System (Orchestrator + 3 agenta)

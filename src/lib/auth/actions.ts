@@ -8,11 +8,9 @@ import {
   loginSchema,
   newPasswordSchema,
   resetPasswordRequestSchema,
-  signUpSchema,
   type LoginInput,
   type NewPasswordInput,
   type ResetPasswordRequestInput,
-  type SignUpInput,
 } from './schemas';
 
 export type AuthResult = { ok: true } | { ok: false; error: string };
@@ -21,40 +19,12 @@ function defaultLocalePath(path: string): string {
   return `/${routing.defaultLocale}${path.startsWith('/') ? path : `/${path}`}`;
 }
 
-export async function signUpAction(input: SignUpInput): Promise<AuthResult> {
-  const parsed = signUpSchema.safeParse(input);
-  if (!parsed.success) {
-    return { ok: false, error: parsed.error.issues[0]?.message ?? 'Invalid input' };
-  }
-  const { email, username, password } = parsed.data;
-
-  const supabase = await createClient();
-
-  // Username uniqueness check up front — Auth doesn't know about public.users.
-  const { data: existing } = await supabase
-    .from('users')
-    .select('id')
-    .eq('username', username)
-    .maybeSingle();
-  if (existing) {
-    return { ok: false, error: 'Username is already taken' };
-  }
-
-  const { data: signUpData, error } = await supabase.auth.signUp({
-    email,
-    password,
-    options: { data: { username } },
-  });
-  if (error) {
-    return { ok: false, error: error.message };
-  }
-
-  if (signUpData.user) {
-    await ensureSuperAdmin({ userId: signUpData.user.id, email });
-  }
-
-  return { ok: true };
-}
+// NOTE: there is deliberately no self-service `signUpAction`. Registration is
+// invite-only (F3): the admin issues an owner invite, owners issue member
+// invites, and `acceptInviteAction` in `@/lib/family/actions` is the only path
+// that creates an account. An open signup route also meant anyone could
+// register the hardcoded `SUPER_ADMIN_EMAIL` and be auto-promoted to admin by
+// `ensureSuperAdmin`, so this is a closed door, not a missing feature.
 
 export async function loginAction(input: LoginInput, redirectTo?: string): Promise<AuthResult> {
   const parsed = loginSchema.safeParse(input);

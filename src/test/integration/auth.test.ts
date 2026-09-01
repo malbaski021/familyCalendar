@@ -23,7 +23,8 @@ let createdUserId: string | undefined;
 
 describe('Auth: signUp + signIn lifecycle', () => {
   beforeAll(async () => {
-    // Use the public anon client so we exercise the same path the SignUpForm does.
+    // Use the public anon client so we exercise the same Auth path
+    // `acceptInviteAction` takes (the only account-creating flow in the app).
     const client = freshClient();
     const { data, error } = await client.auth.signUp({
       email: TEST_EMAIL,

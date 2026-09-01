@@ -37,12 +37,8 @@
     "confirmPassword": "Confirm password",
     "username": "Username",
     "signUp": {
-      "title": "Create your account",
-      "subtitle": "Enter your details below to sign up.",
       "submit": "Sign up",
       "submitting": "Signing up...",
-      "haveAccount": "Already have an account?",
-      "loginLink": "Log in",
       "success": "Account created. You are signed in."
     },
     "signIn": {
@@ -50,8 +46,6 @@
       "subtitle": "Welcome back. Enter your credentials below.",
       "submit": "Log in",
       "submitting": "Logging in...",
-      "noAccount": "Don't have an account?",
-      "signUpLink": "Sign up",
       "forgotPassword": "Forgot your password?"
     },
     "logout": {

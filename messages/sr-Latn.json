@@ -37,12 +37,8 @@
     "confirmPassword": "Potvrdi lozinku",
     "username": "Korisničko ime",
     "signUp": {
-      "title": "Napravi nalog",
-      "subtitle": "Unesi podatke ispod za registraciju.",
       "submit": "Registruj se",
       "submitting": "Registracija...",
-      "haveAccount": "Već imaš nalog?",
-      "loginLink": "Prijavi se",
       "success": "Nalog je napravljen. Prijavljen si."
     },
     "signIn": {
@@ -50,8 +46,6 @@
       "subtitle": "Dobrodošao nazad. Unesi svoje podatke ispod.",
       "submit": "Prijavi se",
       "submitting": "Prijava...",
-      "noAccount": "Nemaš nalog?",
-      "signUpLink": "Registruj se",
       "forgotPassword": "Zaboravio si lozinku?"
     },
     "logout": {
