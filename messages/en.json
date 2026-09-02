@@ -104,8 +104,12 @@
       "generateOwnerInvite": "Generate Owner invite",
       "regenerate": "Regenerate",
       "noMembers": "No members yet.",
-      "roleOwner": "owner",
-      "roleMember": "member"
+      "details": "Details",
+      "role": {
+        "owner": "owner",
+        "member": "member",
+        "child": "child"
+      }
     },
     "invite": {
       "copied": "Invite link copied",
@@ -113,6 +117,16 @@
       "expiresAt": "Expires {when}",
       "copy": "Copy",
       "role": "Role"
+    },
+    "deleteFamily": {
+      "trigger": "Delete family",
+      "title": "Delete {name}?",
+      "description": "This permanently removes the family and everything in it: {count} member(s), all children, events, invite links and its activity history. Member accounts are kept. This cannot be undone.",
+      "confirmLabel": "I understand this permanently deletes {name} and all of its data.",
+      "submit": "Delete family",
+      "deleting": "Deleting...",
+      "cancel": "Cancel",
+      "success": "{name} deleted"
     }
   },
   "settings": {
@@ -229,6 +243,9 @@
       "promptBody": "Pick up where you left off, or discard the draft and start fresh.",
       "restore": "Continue draft",
       "discard": "Discard draft"
+    },
+    "dialog": {
+      "openFull": "Open full page"
     }
   },
   "children": {

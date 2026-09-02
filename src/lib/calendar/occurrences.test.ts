@@ -219,3 +219,63 @@ describe('assembleOccurrences — ordering', () => {
     expect(assemble({ rows }).map((e) => e.id)).toEqual(['a', 'd', 'b', 'c']);
   });
 });
+
+describe('assembleOccurrences — tagged children', () => {
+  const joinRow = (childId: string, name: string) => ({
+    child_id: childId,
+    children: { name },
+  });
+
+  it('maps the embedded join into id/name pairs', () => {
+    const rows = [event({ event_children: [joinRow('c-luka', 'Luka')] })];
+    expect(assemble({ rows })[0].children).toEqual([{ id: 'c-luka', name: 'Luka' }]);
+  });
+
+  it('accepts the relation arriving as an array, which PostgREST may do', () => {
+    const rows = [
+      event({ event_children: [{ child_id: 'c-mila', children: [{ name: 'Mila' }] }] }),
+    ];
+    expect(assemble({ rows })[0].children).toEqual([{ id: 'c-mila', name: 'Mila' }]);
+  });
+
+  it('returns an empty array when nothing is tagged', () => {
+    expect(assemble({ rows: [event()] })[0].children).toEqual([]);
+    expect(assemble({ rows: [event({ event_children: [] })] })[0].children).toEqual([]);
+  });
+
+  it('drops a join row whose child could not be resolved', () => {
+    // RLS or a race can leave the embedded relation null; rendering a nameless
+    // chip is worse than omitting it.
+    const rows = [
+      event({
+        event_children: [joinRow('c-luka', 'Luka'), { child_id: 'c-ghost', children: null }],
+      }),
+    ];
+    expect(assemble({ rows })[0].children).toEqual([{ id: 'c-luka', name: 'Luka' }]);
+  });
+
+  it('sorts children by name, case-insensitively', () => {
+    const rows = [
+      event({
+        event_children: [joinRow('3', 'Zoe'), joinRow('1', 'ana'), joinRow('2', 'Bob')],
+      }),
+    ];
+    expect(assemble({ rows })[0].children.map((c) => c.name)).toEqual(['ana', 'Bob', 'Zoe']);
+  });
+
+  it('gives every occurrence of a series the same children', () => {
+    // event_children hangs off the master row, so there is nothing per-occurrence.
+    const rows = [
+      event({
+        start_date: '2026-06-01',
+        recurring_pattern: 'weekly',
+        event_children: [joinRow('c-luka', 'Luka')],
+      }),
+    ];
+    const result = assemble({ rows });
+    expect(result.length).toBeGreaterThan(1);
+    expect(result.every((o) => o.children.length === 1 && o.children[0].name === 'Luka')).toBe(
+      true,
+    );
+  });
+});

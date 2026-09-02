@@ -93,6 +93,65 @@ export async function createFamilyAction(input: {
   return { ok: true, data };
 }
 
+/**
+ * Delete a family and, by FK cascade, everything belonging to it: members,
+ * children, invite links, events and all of their dependants (instances,
+ * reminders, shares, drafts, queued AI tasks), plus every audit row carrying
+ * this family_id.
+ *
+ * Admin only — enforced here and again by the `families: admin can delete`
+ * RLS policy.
+ *
+ * User accounts are deliberately NOT removed. A person is not family data:
+ * dropping their login because a calendar was deleted would be a surprising
+ * side effect, and `public.users` does not cascade from `families` anyway.
+ */
+export async function deleteFamilyAction(input: {
+  familyId: string;
+}): Promise<ActionResult<{ id: string }>> {
+  const admin = await requireAdmin().catch((e: Error) => e);
+  if (admin instanceof Error) return { ok: false, error: admin.message };
+
+  const supabase = await createServerClient();
+
+  // Snapshot before it disappears — this is the only record left afterwards.
+  const { data: family } = await supabase
+    .from('families')
+    .select('id, name, slug, created_at')
+    .eq('id', input.familyId)
+    .maybeSingle();
+  if (!family) return { ok: false, error: 'Family not found' };
+
+  const { data: members } = await supabase
+    .from('family_members')
+    .select('role, users(username)')
+    .eq('family_id', input.familyId);
+
+  const { error } = await supabase.from('families').delete().eq('id', input.familyId);
+  if (error) return { ok: false, error: error.message };
+
+  // Logged with familyId null on purpose: `audit_log.family_id` cascades on
+  // family delete, so an entry tagged with this family would be wiped by the
+  // very deletion it records.
+  await logAudit({
+    familyId: null,
+    actorType: 'user',
+    actorId: admin.authId,
+    action: 'family.deleted',
+    entity: 'families',
+    entityId: family.id,
+    oldData: {
+      ...family,
+      members: (members ?? []).map((m) => {
+        const profile = Array.isArray(m.users) ? m.users[0] : m.users;
+        return { role: m.role, username: profile?.username ?? null };
+      }),
+    },
+  });
+
+  return { ok: true, data: { id: family.id } };
+}
+
 async function buildInviteUrl(token: string, role: 'owner' | 'member'): Promise<string> {
   const headerStore = await headers();
   const host = headerStore.get('host') ?? 'localhost:3000';

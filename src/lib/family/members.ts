@@ -22,3 +22,35 @@ export function sortFamilyMembers<T extends FamilyMemberSummary>(members: T[]): 
       a.username.localeCompare(b.username, undefined, { sensitivity: 'base' }),
   );
 }
+
+/**
+ * Everyone in a family as one list: accounts and children together.
+ *
+ * `child` is not a `family_member_role` — children live in their own table and
+ * have no login. They are folded in here purely for display, because "who is
+ * in this family" is one question, not two.
+ */
+export type RosterRole = FamilyRole | 'child';
+
+export interface RosterEntry {
+  /** Stable React key; ids can collide across the two source tables. */
+  key: string;
+  name: string;
+  role: RosterRole;
+}
+
+export function buildFamilyRoster(
+  members: FamilyMemberSummary[],
+  children: { id: string; name: string }[],
+): RosterEntry[] {
+  const rank: Record<RosterRole, number> = { owner: 0, member: 1, child: 2 };
+  const entries: RosterEntry[] = [
+    ...members.map((m) => ({ key: `user-${m.userId}`, name: m.username, role: m.role })),
+    ...children.map((c) => ({ key: `child-${c.id}`, name: c.name, role: 'child' as const })),
+  ];
+  return entries.sort(
+    (a, b) =>
+      rank[a.role] - rank[b.role] ||
+      a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }),
+  );
+}

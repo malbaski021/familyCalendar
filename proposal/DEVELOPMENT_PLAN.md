@@ -534,6 +534,56 @@ Testovi posle ovog inkrementa: **135 unit u 14/14 fajlova** + 11 novih integrati
 
 ---
 
+## Manuelno testiranje (2026-09-02) — nalazi i ispravke
+
+> F11 je pauziran posle backend dela; ovo je prolaz kroz aplikaciju iz browsera, na **lokalnom** Supabase stack-u (`.env.development.local` preusmerava `npm run dev` na lokalnu bazu, produkcija se ne dira). Sve ispod je nađeno klikanjem, ne čitanjem koda.
+
+### Dva zaglavljivanja — ista simptom, različiti uzroci
+
+Oba su se prijavljivala isto: klik prođe, server odradi posao, a stranica ostane trajno u „Rendering" stanju. Log je u oba slučaja pokazivao uspešnu akciju i uspešan render odredišta — dakle greška je bila isključivo na klijentu.
+
+- [x] **Onboarding „Finish" se ne završava.** Tok je uvek isti: posle prihvatanja invite-a ide se na `/calendar`, guard vidi da onboarding nije završen i vrati na `/onboarding` — i **router taj bounce keširа**. Na kraju `router.replace('/calendar')` servira keširani odgovor, a to je redirect natrag. Rešeno prebacivanjem redirect-a u samu akciju (`completeOnboardingAction`), jer server-side redirect ne ide iz klijentskog keša. Usput se prosleđuje i `locale`, pa srpski korisnik završava na `/sr-Latn/calendar`.
+- [x] **Save događaja se ne završava.** Ovde keš nije bio problem — uzrok je sam obrazac `router.replace()` + `router.refresh()` unutar istog async transition-a: dva router update-a u letu istovremeno i transition nikad ne završi. Skinut `refresh`, a svežina se rešava `revalidatePath` u `createEventAction` / `updateEventAction`.
+
+**Isti obrazac ostaje na 5 mesta** (`delete-event-button`, `cancel-instance-button`, `instance-override-form`, `accept-invite-form`, `new-password-form`). Tamo se trenutno ne manifestuje, ali je ista klasa rizika — kandidat za F18.
+
+### next-intl upozorenje
+
+- [x] `ENVIRONMENT_FALLBACK: The 'now' parameter wasn't provided to relativeTime` na `/audit`. Nije bio šum: bez referentne točke server i klijent biraju **različit „now"** i ne slažu se pri hidrataciji. Dodat globalni `now` u `getRequestConfig`, što pokriva i `edit-lock-banner` koji bi na isto naletio. Vrednost je fiksna po zahtevu, pa relativna vremena ne otkucavaju sama — osvežavaju se pri navigaciji.
+
+### Admin panel
+
+- [x] **Jedna „Details" lista po porodici** — svi u porodici zajedno (nalozi i deca), sa funkcijom u zagradi, owner → member → child, unutar grupe abecedno. Kolone poravnate kroz `grid-cols-subgrid`. Abecedni tiebreak nije kozmetika: `family_members` nema kolonu za redosled, pa bi se lista preslagivala između refresh-eva.
+- [x] Slug ispod naziva porodice izbačen (vidi se u samom invite linku).
+- [x] `Generate Owner invite` se prikazuje **samo dok je owner mesto slobodno**.
+- [x] **Delete family** sa modalom i checkbox potvrdom; `Delete` je disabled dok se ne označi, a checkbox se resetuje pri zatvaranju da drugo brisanje ne prođe na jedan klik. Kaskadno pada sve što porodici pripada.
+  - `family.deleted` audit red se piše sa **`family_id = null`** — inače bi ga sopstveno brisanje odnelo, jer `audit_log.family_id` kaskadira. Bez toga brisanje porodice ne bi ostavilo nikakav trag.
+  - **Nalozi članova se ne brišu.** Osoba nije podatak o porodici, a `public.users` i ne kaskadira iz `families`.
+
+### Kalendar
+
+- [x] **Klik na događaj otvara modal**, u sva tri prikaza, umesto pune navigacije. Prikazuje kategoriju, datum (i završni za multi-day), vreme ili `All-day`, lokaciju, **označenu decu** i napomene, plus `Recurring` i 🔒 badge. Detail stranica ostaje dostupna kroz „Open full page" — brisanje, `Edit series` i otkazivanje pojedinačne pojave nisu prepisivani u modal.
+- [x] `loadEventsInRange` povlači i `event_children(child_id, children(name))` u istom upitu. Deca su vezana za master red, pa sve pojave serije dele istu listu.
+
+### Activity
+
+- [x] `/audit` je sad **samo za super-admina**: link izbačen iz osnovnih nav stavki i prebačen u admin-only grupu, **i** stranica odbija ne-admine. Oba namerno — skrivanje linka nije kontrola, samo kozmetika; bez guard-a bi owner koji ukuca URL i dalje ušao. RLS ostaje treći sloj.
+
+### Odloženo
+
+- [ ] **Copy link / public read-only stranica** za pojedinačan događaj — to je **F13**, radi se u svojoj fazi. Usput nalaz za tada: `event_shares` nema kolonu za datum pojave, pa deljenje konkretne pojave recurring serije traži ili novu kolonu ili datum u tokenu; specifikacija (`slugify(title-date)` + nanoid) ga stavlja samo u string tokena.
+- [ ] `mother` / `father` uz ime člana — `family_member_role` zna samo `owner` i `member`; traži novu kolonu i migraciju. Dogovoreno da owner/member zasad zadovoljava.
+
+### Testovi dodati u ovom prolazu
+
+`buildFamilyRoster` (6), označena deca u `assembleOccurrences` (6), `DeleteFamilyDialog` (7 — uključujući da `Delete` ostaje disabled i da se checkbox resetuje), i integration za kaskadu brisanja porodice (3 — pokriva i dva nivoa ispod `events`, i da `family.deleted` preživi).
+
+**Stanje:** unit **161 u 16/16 fajlova**, integration **89 u 12/12 fajlova**, typecheck / lint / format / build čisti, i18n paritet 252/252.
+
+> Napomena za lokalni razvoj: integration suite zavisi od seed fixture-a (`Jovic Family`, `Smith Family`). Testiranje Delete family dugmeta je obrisalo Jović porodicu i time oborilo 18 testova u 10 fajlova. Na CI-u je baza sveža pri svakom prolazu pa se ne vidi; lokalno se vraća sa `npm run db:reset`.
+
+---
+
 ## F12 — Weather forecast
 
 **Cilj:** U event detail-u pokazati vremensku prognozu za datum događaja.

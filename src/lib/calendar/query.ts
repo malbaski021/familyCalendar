@@ -16,7 +16,7 @@ import type { DateRange } from '@/lib/calendar/view';
 export type { CalendarEvent, EventCategory } from '@/lib/calendar/occurrences';
 
 const EVENT_COLUMNS =
-  'id, title, category, start_date, end_date, start_time, end_time, location, notes, recurring_pattern, recurring_end_date, locked_by, locked_at';
+  'id, title, category, start_date, end_date, start_time, end_time, location, notes, recurring_pattern, recurring_end_date, locked_by, locked_at, event_children(child_id, children(name))';
 
 const INSTANCE_COLUMNS =
   'event_id, instance_date, is_cancelled, override_title, override_start_time, override_end_time, override_location, override_notes';

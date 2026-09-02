@@ -1,4 +1,5 @@
 import { getTranslations, setRequestLocale } from 'next-intl/server';
+import { redirect } from '@/i18n/navigation';
 import { requireOnboardedUser } from '@/lib/auth/guards';
 import { loadAuditLog, type ActorFilter, type ActionFilter } from '@/lib/audit/query';
 import { AuditFilters } from '@/components/audit/audit-filters';
@@ -43,7 +44,15 @@ export default async function AuditPage({ params, searchParams }: Props) {
   const { locale } = await params;
   const sp = await searchParams;
   setRequestLocale(locale);
-  await requireOnboardedUser(locale);
+  const user = await requireOnboardedUser(locale);
+
+  // Operator tool, super-admin only. RLS already limits a member to their own
+  // family's rows, but there is no reason to show them the log at all — and
+  // hiding the nav entry is not a control, only the page guard is.
+  if (user.profile.role !== 'admin') {
+    redirect({ href: '/calendar', locale });
+    return null;
+  }
 
   const filters = {
     actor: parseActor(sp.actor),

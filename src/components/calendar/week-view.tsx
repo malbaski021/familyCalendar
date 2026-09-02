@@ -2,7 +2,7 @@
 
 import { useTranslations } from 'next-intl';
 import { addDays, format, isToday, parseISO } from 'date-fns';
-import { Link } from '@/i18n/navigation';
+import { EventDialog } from '@/components/calendar/event-dialog';
 import { cn } from '@/lib/utils';
 import { CATEGORY_STYLES } from '@/lib/calendar/categories';
 import type { DateRange } from '@/lib/calendar/view';
@@ -62,21 +62,18 @@ export function WeekView({ range, events }: Props) {
               >
                 {items.map((e) => {
                   const style = CATEGORY_STYLES[e.category];
-                  const href = e.recurring
-                    ? `/calendar/${e.id}?date=${e.occurrenceDate}`
-                    : `/calendar/${e.id}`;
                   return (
-                    <Link
+                    <EventDialog
                       key={`${e.id}-${e.occurrenceDate}`}
-                      href={href}
+                      event={e}
                       className={cn(
-                        'block truncate rounded-sm border px-1 text-[10px] hover:brightness-95',
+                        'block w-full truncate rounded-sm border px-1 text-[10px] hover:brightness-95',
                         style.chipClass,
                       )}
-                      data-testid={`calendar-week-event-${e.id}-${e.occurrenceDate}-link`}
+                      testId={`calendar-week-event-${e.id}-${e.occurrenceDate}-link`}
                     >
                       {style.emoji} {e.title}
-                    </Link>
+                    </EventDialog>
                   );
                 })}
               </div>
@@ -119,21 +116,18 @@ function HourRow({ hour, days, timedByCell }: HourRowProps) {
           >
             {items.map((e) => {
               const style = CATEGORY_STYLES[e.category];
-              const href = e.recurring
-                ? `/calendar/${e.id}?date=${e.occurrenceDate}`
-                : `/calendar/${e.id}`;
               return (
-                <Link
+                <EventDialog
                   key={`${e.id}-${e.occurrenceDate}`}
-                  href={href}
+                  event={e}
                   className={cn(
-                    'block truncate rounded-sm border px-1 text-[10px] hover:brightness-95',
+                    'block w-full truncate rounded-sm border px-1 text-[10px] hover:brightness-95',
                     style.chipClass,
                   )}
-                  data-testid={`calendar-week-event-${e.id}-${e.occurrenceDate}-link`}
+                  testId={`calendar-week-event-${e.id}-${e.occurrenceDate}-link`}
                 >
                   {e.startTime} {e.title}
-                </Link>
+                </EventDialog>
               );
             })}
           </div>

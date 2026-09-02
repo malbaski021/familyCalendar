@@ -3,6 +3,7 @@
 import { useTranslations } from 'next-intl';
 import { addDays, format, isSameMonth, isToday, parseISO } from 'date-fns';
 import { Link } from '@/i18n/navigation';
+import { EventDialog } from '@/components/calendar/event-dialog';
 import { cn } from '@/lib/utils';
 import { CATEGORY_STYLES } from '@/lib/calendar/categories';
 import { formatDateParam, type DateRange } from '@/lib/calendar/view';
@@ -65,23 +66,20 @@ export function MonthView({ range, anchor, events }: Props) {
             <div className="mt-1 space-y-0.5">
               {dayEvents.slice(0, 3).map((e) => {
                 const style = CATEGORY_STYLES[e.category];
-                const href = e.recurring
-                  ? `/calendar/${e.id}?date=${e.occurrenceDate}`
-                  : `/calendar/${e.id}`;
                 return (
-                  <Link
+                  <EventDialog
                     key={`${e.id}-${e.occurrenceDate}`}
-                    href={href}
+                    event={e}
                     className={cn(
-                      'flex items-center gap-1 truncate rounded-sm border px-1 hover:brightness-95',
+                      'flex w-full items-center gap-1 truncate rounded-sm border px-1 hover:brightness-95',
                       style.chipClass,
                     )}
-                    data-testid={`calendar-month-event-${e.id}-${e.occurrenceDate}-link`}
+                    testId={`calendar-month-event-${e.id}-${e.occurrenceDate}-link`}
                   >
                     {e.lockedByOther && <span aria-label="locked">🔒</span>}
                     <span aria-hidden="true">{style.emoji}</span>
                     <span className="truncate">{e.title}</span>
-                  </Link>
+                  </EventDialog>
                 );
               })}
               {dayEvents.length > 3 && (

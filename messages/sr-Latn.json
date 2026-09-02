@@ -104,8 +104,12 @@
       "generateOwnerInvite": "Generiši Owner poziv",
       "regenerate": "Regeneriši",
       "noMembers": "Još nema članova.",
-      "roleOwner": "owner",
-      "roleMember": "member"
+      "details": "Detalji",
+      "role": {
+        "owner": "owner",
+        "member": "member",
+        "child": "dete"
+      }
     },
     "invite": {
       "copied": "Link je kopiran",
@@ -113,6 +117,16 @@
       "expiresAt": "Ističe {when}",
       "copy": "Kopiraj",
       "role": "Rola"
+    },
+    "deleteFamily": {
+      "trigger": "Obriši porodicu",
+      "title": "Obrisati {name}?",
+      "description": "Ovo trajno briše porodicu i sve u njoj: {count} član(ov)a, svu decu, događaje, pozivne linkove i istoriju aktivnosti. Korisnički nalozi ostaju. Ova akcija se ne može poništiti.",
+      "confirmLabel": "Razumem da ovo trajno briše {name} i sve njene podatke.",
+      "submit": "Obriši porodicu",
+      "deleting": "Brišem...",
+      "cancel": "Otkaži",
+      "success": "{name} je obrisana"
     }
   },
   "settings": {
@@ -229,6 +243,9 @@
       "promptBody": "Nastavi gde si stao ili odbaci draft.",
       "restore": "Nastavi draft",
       "discard": "Odbaci draft"
+    },
+    "dialog": {
+      "openFull": "Otvori celu stranicu"
     }
   },
   "children": {

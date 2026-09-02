@@ -29,6 +29,14 @@ export interface CalendarEvent {
    *  The chip renders a small badge so users see "someone is editing this" before
    *  they try to open it. Self-locks aren't surfaced — they're the boring case. */
   lockedByOther: boolean;
+  /** Tagged children. Attached to the master event, so every occurrence of a
+   *  recurring series shares the same list. */
+  children: TaggedChild[];
+}
+
+export interface TaggedChild {
+  id: string;
+  name: string;
 }
 
 /** The `events` columns the calendar range query selects. */
@@ -46,6 +54,8 @@ export interface EventRangeRow {
   recurring_end_date: string | null;
   locked_by: string | null;
   locked_at: string | null;
+  /** Embedded join rows. Optional so fixtures don't have to supply them. */
+  event_children?: { child_id: string; children: { name: string } | { name: string }[] | null }[];
 }
 
 /** The `event_instances` columns the calendar range query selects. */
@@ -183,7 +193,19 @@ function makeOccurrence(
     notes: override?.override_notes ?? event.notes,
     recurring,
     lockedByOther,
+    children: taggedChildren(event),
   };
+}
+
+function taggedChildren(event: EventRangeRow): TaggedChild[] {
+  return (event.event_children ?? [])
+    .map((row) => {
+      // PostgREST types an embedded to-one relation as possibly an array.
+      const child = Array.isArray(row.children) ? row.children[0] : row.children;
+      return { id: row.child_id, name: child?.name ?? '' };
+    })
+    .filter((c) => c.name !== '')
+    .sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }));
 }
 
 function pickTime(value: string | null | undefined): string | null {
