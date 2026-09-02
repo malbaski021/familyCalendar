@@ -474,7 +474,7 @@ Unit suite posle: **97 testova u 11/11 fajlova** (−4, obrisani zajedno sa `Sig
 - [x] Groq API key u env, klijent helper _(`src/lib/ai/groq-client.ts` — OpenAI-kompatibilan REST endpoint preko `fetch`, bez SDK zavisnosti; lenja inicijalizacija da `build` i CI rade bez ključa)_
 - [x] Strukturisani JSON tipovi za task/result svakog agenta _(`src/lib/ai/schemas.ts` — Zod šeme po agentu + kompozitna `aiSuggestionSchema`)_
 - [x] Orchestrator: ~~paralelno dispatch-uje~~ **spaja task-ove u jedan zahtev** _(`src/lib/ai/orchestrate.ts`; vidi odstupanje iznad)_
-- [x] Agent 1 — Duplicate Detection (title, datum, time overlap, semantika) _(`agents/duplicates.ts`; kandidati se pre-filtriraju u SQL-u na ±3 dana, max 8 — AI sudi samo semantiku, ne skenira kalendar)_
+- [x] Agent 1 — Duplicate Detection (title, datum, time overlap, semantika) _(`agents/duplicates.ts` + `candidates.ts`; kandidati se pre-filtriraju u SQL-u na ±3 dana, max 8 — AI sudi samo semantiku, ne skenira kalendar)_
 - [x] Agent 2 — Categorization & Tagging + child detection (sa porodičnom listom dece) _(`agents/categorization.ts`; prompt pokriva srpske padeže — „Luki", „Lukin" → „Luka")_
 - [x] Agent 3 — Smart Reminders (timing prema kategoriji) _(`agents/reminders.ts`)_
 - [x] Orchestrator: assembluje rezultate u `user_message` na jeziku korisnika _(`buildSystemPrompt(locale)`)_
@@ -482,7 +482,7 @@ Unit suite posle: **97 testova u 11/11 fajlova** (−4, obrisani zajedno sa `Sig
 - [ ] "New child detected → add to family list?" prompt _(šema već vraća `newChildNames` odvojeno od `childIds`, da AI ne može tiho da izmisli dete)_
 - [x] Sinhroni put: 3s timeout na Groq poziv _(`AI_SYNC_TIMEOUT_MS`; orchestrator trka poziv protiv budžeta, pa i pozivalac koji ignoriše `AbortSignal` ne može da zadrži save)_
 - [x] Ako timeout/fail: task ide u `ai_queue` (status: pending) _(`enqueueAiTask`; payload je samodovoljan — nosi `requestedBy`, `familyId`, `reason` i ceo `input`, jer `ai_queue` nema `user_id` kolonu)_
-- [x] Supabase Realtime: `ai_queue` u publication _(migracija `20260901120000`, plus parcijalni indeks `idx_ai_queue_pending`)_ — _klijentski subscriber koji poziva obradu dolazi sa UI inkrementom_
+- [ ] Supabase Realtime trigger na novi `ai_queue` zapis → procesira u pozadini _(migracija `20260901120000` i `processAiTaskAction` su gotovi; **klijentski subscriber još ne postoji** — dolazi sa UI inkrementom)_
 - [x] Status lifecycle: pending → processing → done/failed _(`claimTask` / `processQueuedTask` / `settleFailed`, uz `attempts` i `processed_at`)_
 - [x] Push notifikacija kad queued task završi _(`sendPush` tip `ai_complete`; best-effort — pad push-a ne vraća red u `failed`)_
 - [x] Zaštita od duplog processing-a (status check) _(atomičan `update ... where status='pending'` — od dva trkača tačno jedan dobije red)_
@@ -518,7 +518,19 @@ Groq se injektuje kroz `deps.call`, pa ceo lifecycle radi u CI-ju **bez API klju
 
 Testovi posle ovog inkrementa: **135 unit u 14/14 fajlova** + 11 novih integration slučajeva.
 
-**Sledeće:** UI za predloge — inline prikaz, auto-fill kategorije/deteta, warning za duplikat, potvrda podsetnika, „novo dete → dodati u porodicu?", plus klijentski realtime subscriber koji pokreće obradu reda.
+### Napredak (2026-09-02) — kandidati i povezivanje sa aplikacijom
+
+**Nedostajao je dohvat kandidata za duplikate.** `MAX_DUPLICATE_CANDIDATES` i `DUPLICATE_WINDOW_DAYS` su postojali kao konstante, ali funkcija koja ih koristi nije — agent za duplikate bi uvek dobijao praznu listu i nikad ništa ne bi našao. Dodat `src/lib/ai/candidates.ts`: `loadDuplicateCandidates` traži ±3 dana u SQL-u i seče na 8 redova. Duplo ograničenje je namerno — prozor znači da nedeljna serija doprinese najviše jednom susednom terminom, pa zauzeta porodica ne može da probije token budžet.
+
+**Seam ka aplikaciji.** `src/lib/ai/actions.ts` → `requestSuggestionsAction({ eventId })` sklapa input, poziva orchestrator, i na `queued` upisuje u `ai_queue`. `processAiTaskAction` pokreće obradu jednog reda (za realtime subscriber i F17 cron).
+
+**`createEventAction` namerno NE zove AI.** Save vraća čim je red upisan; klijent tek onda traži predloge. Tako spor ili mrtav Groq kasni samo savet, nikad sam događaj. Drugi razlog je što je `ai_queue.event_id` `NOT NULL` — zakačen task mora da ima događaj kome pripada, pa red i može da postoji jedino posle save-a.
+
+**Injekcija klijenta za testabilnost.** `loadDuplicateCandidates` i `loadSuggestionInput` primaju opcioni Supabase klijent; produkcija ne prosleđuje ništa i dobija RLS-vezan session klijent, a integration testovi ubacuju admin klijent. Time se testira **stvarni** kod, a ne rekonstrukcija upita — isti obrazac kao `GroqCall` u orchestratoru.
+
+**11 novih integration slučajeva:** granice prozora (mesec i godina), isključivanje samog događaja, skraćivanje vremena, poštovanje capa u prepunom prozoru, izolacija po porodici, i `loadSuggestionInput` koji vraća `null` za tuđ ili nepostojeći događaj.
+
+**Sledeće:** UI za predloge — inline prikaz, auto-fill kategorije/deteta, warning za duplikat, potvrda podsetnika (uz upis u `event_reminders`), „novo dete → dodati u porodicu?", klijentski realtime subscriber, i audit `ai.accepted` / `ai.rejected`.
 
 ---
 
