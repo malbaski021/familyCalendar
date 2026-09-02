@@ -1,5 +1,6 @@
 'use server';
 
+import { revalidatePath } from 'next/cache';
 import { createClient as createServerClient } from '@/lib/supabase/server';
 import { getCurrentUser } from '@/lib/auth/get-current-user';
 import { logAudit } from '@/lib/audit/log';
@@ -88,6 +89,11 @@ export async function createEventAction(input: EventInput): Promise<ActionResult
     newData: { ...toDbPayload(parsed.data), child_ids: parsed.data.childIds },
   });
 
+  // Invalidate server-side so the navigation that follows renders the new
+  // event. The client deliberately does not call `router.refresh()` — see the
+  // comment in `event-form.tsx`.
+  revalidatePath('/[locale]/(app)/calendar', 'page');
+
   return { ok: true, data };
 }
 
@@ -133,6 +139,9 @@ export async function updateEventAction(input: {
     oldData: prev ?? null,
     newData: { ...toDbPayload(parsed.data), child_ids: parsed.data.childIds },
   });
+
+  revalidatePath('/[locale]/(app)/calendar', 'page');
+  revalidatePath('/[locale]/(app)/calendar/[id]', 'page');
 
   return { ok: true, data };
 }

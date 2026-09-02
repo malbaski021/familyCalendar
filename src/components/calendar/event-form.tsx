@@ -94,8 +94,13 @@ export function EventForm({ mode, eventId, initial, familyChildren }: Props) {
         if (mode === 'edit' && eventId && typeof window !== 'undefined') {
           window.dispatchEvent(new CustomEvent('event-form:submitted', { detail: { eventId } }));
         }
+        // Only navigate — no `router.refresh()` alongside it. Firing both
+        // inside the same async transition leaves two router updates in
+        // flight at once and the transition never settles, which shows up as
+        // a permanently "Rendering" page even though the save already
+        // succeeded. Freshness is handled server-side by `revalidatePath` in
+        // the action.
         router.replace(mode === 'create' ? '/calendar' : `/calendar/${result.data.id}`);
-        router.refresh();
       } else {
         setServerError(result.error);
       }

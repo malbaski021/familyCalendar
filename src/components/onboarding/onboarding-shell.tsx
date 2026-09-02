@@ -1,9 +1,8 @@
 'use client';
 
 import { useState, useTransition } from 'react';
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import { toast } from 'sonner';
-import { useRouter } from '@/i18n/navigation';
 
 import { Button } from '@/components/ui/button';
 import { ChildrenManager } from '@/components/family/children-manager';
@@ -24,7 +23,7 @@ type Step = 1 | 2 | 3;
 
 export function OnboardingShell({ initialChildren, username }: Props) {
   const t = useTranslations('onboarding');
-  const router = useRouter();
+  const locale = useLocale();
   const [step, setStep] = useState<Step>(1);
   const [isPending, startTransition] = useTransition();
   // Optional client-only state to reflect what the browser said about notification permission.
@@ -34,13 +33,11 @@ export function OnboardingShell({ initialChildren, username }: Props) {
 
   function finish() {
     startTransition(async () => {
-      const result = await completeOnboardingAction();
-      if (!result.ok) {
-        toast.error(result.error);
-        return;
-      }
-      router.replace('/calendar');
-      router.refresh();
+      // On success this never returns — the action redirects server-side, which
+      // is what stops the client router replaying its cached `/calendar` →
+      // `/onboarding` bounce from before onboarding was complete.
+      const result = await completeOnboardingAction({ locale });
+      if (!result.ok) toast.error(result.error);
     });
   }
 
