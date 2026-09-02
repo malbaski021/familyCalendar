@@ -30,7 +30,10 @@
   },
   "auth": {
     "login": "Prijavi se",
-    "logout": "Odjavi se",
+    "logout": {
+      "submit": "Odjavi se",
+      "submitting": "Odjava..."
+    },
     "email": "Email",
     "password": "Lozinka",
     "newPassword": "Nova lozinka",
@@ -47,10 +50,6 @@
       "submit": "Prijavi se",
       "submitting": "Prijava...",
       "forgotPassword": "Zaboravio si lozinku?"
-    },
-    "logout": {
-      "submit": "Odjavi se",
-      "submitting": "Odjava..."
     },
     "forgotPassword": {
       "title": "Reset lozinke",
@@ -103,7 +102,10 @@
       "owners": "Owner-i",
       "members": "Članovi",
       "generateOwnerInvite": "Generiši Owner poziv",
-      "regenerate": "Regeneriši"
+      "regenerate": "Regeneriši",
+      "noMembers": "Još nema članova.",
+      "roleOwner": "owner",
+      "roleMember": "member"
     },
     "invite": {
       "copied": "Link je kopiran",

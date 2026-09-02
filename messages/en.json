@@ -30,7 +30,10 @@
   },
   "auth": {
     "login": "Log in",
-    "logout": "Log out",
+    "logout": {
+      "submit": "Log out",
+      "submitting": "Logging out..."
+    },
     "email": "Email",
     "password": "Password",
     "newPassword": "New password",
@@ -47,10 +50,6 @@
       "submit": "Log in",
       "submitting": "Logging in...",
       "forgotPassword": "Forgot your password?"
-    },
-    "logout": {
-      "submit": "Log out",
-      "submitting": "Logging out..."
     },
     "forgotPassword": {
       "title": "Reset your password",
@@ -103,7 +102,10 @@
       "owners": "Owners",
       "members": "Members",
       "generateOwnerInvite": "Generate Owner invite",
-      "regenerate": "Regenerate"
+      "regenerate": "Regenerate",
+      "noMembers": "No members yet.",
+      "roleOwner": "owner",
+      "roleMember": "member"
     },
     "invite": {
       "copied": "Invite link copied",
