@@ -56,12 +56,23 @@ export function PushToggle() {
   useEffect(() => {
     void (async () => {
       if (typeof window === 'undefined') return;
-      if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
-        setState({ kind: 'unsupported' });
-        return;
-      }
+
+      // iOS FIRST, before the capability probe below. Safari only exposes
+      // `PushManager` once the site is installed to the Home Screen, so an
+      // iPhone visiting in the browser fails the capability check and would be
+      // told push is unsupported — which is both wrong and a dead end, since
+      // installing is exactly what unlocks it. This ordering is the difference
+      // between "your browser can't do this" and "here's how to enable it".
       if (isIos() && !isStandalone()) {
         setState({ kind: 'ios-needs-install' });
+        return;
+      }
+
+      // Genuinely unsupported: no service worker or no push API even though we
+      // are not in the iOS-needs-install case (e.g. an installed PWA on
+      // iOS < 16.4, or a desktop browser without push).
+      if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+        setState({ kind: 'unsupported' });
         return;
       }
       // Browser permission state first — `default` means we haven't asked yet.
