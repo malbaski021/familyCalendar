@@ -4,7 +4,7 @@ import { format } from 'date-fns';
 import { requireOnboardedUser } from '@/lib/auth/guards';
 import { getFamilyContextFor } from '@/lib/family/get-family-context';
 import { loadEventsInRange } from '@/lib/calendar/query';
-import { parseDate, parseView, rangeForView } from '@/lib/calendar/view';
+import { formatDateParam, parseDate, parseView, rangeForView } from '@/lib/calendar/view';
 import { CalendarNav } from '@/components/calendar/calendar-nav';
 import { CalendarSkeleton } from '@/components/calendar/calendar-skeleton';
 import { MonthView } from '@/components/calendar/month-view';
@@ -61,7 +61,7 @@ async function CalendarBody({
   const events = await loadEventsInRange(familyId, range);
   if (view === 'month') return <MonthView range={range} anchor={anchor} events={events} />;
   if (view === 'week') return <WeekView range={range} events={events} />;
-  return <DayView anchor={anchor} events={events} />;
+  return <DayView dayKey={formatDateParam(anchor)} events={events} />;
 }
 
 async function NoFamily({ locale }: { locale: string }) {

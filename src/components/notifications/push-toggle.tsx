@@ -155,10 +155,20 @@ export function PushToggle() {
   function sendTest() {
     startTransition(async () => {
       const result = await sendTestPushAction();
-      if (result.ok) {
-        toast.success(t('testSent', { sent: result.data.sent }));
-      } else {
+      if (!result.ok) {
         toast.error(result.error);
+        return;
+      }
+      const { sent, failed } = result.data;
+      // "sent to 0 devices" reads like "you have no devices" when in fact the
+      // send was attempted and rejected — which is a completely different
+      // problem. Report the two cases separately.
+      if (sent > 0) {
+        toast.success(t('testSent', { sent }));
+      } else if (failed > 0) {
+        toast.error(t('errors.testFailed', { failed }));
+      } else {
+        toast.error(t('errors.noDevices'));
       }
     });
   }

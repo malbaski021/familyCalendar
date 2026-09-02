@@ -97,7 +97,21 @@ export async function sendPush(params: {
         err && typeof err === 'object' && 'statusCode' in err
           ? Number((err as { statusCode: number }).statusCode)
           : 0;
-      const message = err instanceof Error ? err.message : String(err);
+      // web-push's message is generic ("Received unexpected response code"),
+      // which is useless for diagnosis. Keep the status and body — a 403 from
+      // a VAPID key mismatch and a 410 from a dead subscription need opposite
+      // responses, and the message alone cannot tell them apart.
+      const body =
+        err && typeof err === 'object' && 'body' in err
+          ? String((err as { body: unknown }).body).slice(0, 300)
+          : '';
+      const message = [
+        status ? `HTTP ${status}` : null,
+        err instanceof Error ? err.message : String(err),
+        body || null,
+      ]
+        .filter(Boolean)
+        .join(' — ');
       await supabase
         .from('notifications')
         .update({ status: 'failed', error: message })

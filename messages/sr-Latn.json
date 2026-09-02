@@ -302,7 +302,9 @@
     "errors": {
       "missingVapid": "Notifikacije nisu konfigurisane za ovo okruženje.",
       "subscribeFailed": "Nismo uspeli da pretplatimo na notifikacije.",
-      "unsubscribeFailed": "Nismo uspeli da otkažemo pretplatu."
+      "unsubscribeFailed": "Nismo uspeli da otkažemo pretplatu.",
+      "testFailed": "Push server je odbio slanje na {failed} uređaj(a). Proveri status kod u Activity logu ili tabeli notifications.",
+      "noDevices": "Nijedan uređaj još nije prijavljen. Prvo uključi notifikacije na ovom uređaju."
     }
   },
   "audit": {

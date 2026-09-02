@@ -1,7 +1,6 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import { format, parseISO } from 'date-fns';
 import { ClockIcon, MapPinIcon } from 'lucide-react';
 import { EventDialog } from '@/components/calendar/event-dialog';
 import { cn } from '@/lib/utils';
@@ -9,7 +8,11 @@ import { CATEGORY_STYLES } from '@/lib/calendar/categories';
 import type { CalendarEvent } from '@/lib/calendar/query';
 
 interface Props {
-  anchor: Date;
+  /** The day being shown, as `yyyy-MM-dd`. A string, not a Date, on purpose:
+   *  a Date crossing the server/client boundary carries an instant, and
+   *  formatting UTC midnight in a negative-offset zone yields the previous
+   *  day — which shifted the whole view. A date has no timezone. */
+  dayKey: string;
   events: CalendarEvent[];
 }
 
@@ -18,17 +21,20 @@ interface Props {
  * (sorted ascending by start_time). Empty state covers the common
  * placeholder case (no events on the chosen day).
  */
-export function DayView({ anchor, events }: Props) {
+export function DayView({ dayKey, events }: Props) {
   const t = useTranslations('calendar');
-  const dayKey = format(anchor, 'yyyy-MM-dd');
-
   const dayEvents = events.filter((e) => {
     // Recurring occurrences land on a single date; non-recurring multi-day
     // events span between their start and end.
+    //
+    // Compared as `yyyy-MM-dd` strings, never as Date objects. Vercel renders
+    // in UTC while the browser re-runs this in its own zone; a UTC+2 phone
+    // turned `parseISO('2026-09-03')` into 2026-09-02T22:00Z, so the upper
+    // bound failed and a same-day event rendered on the server then vanished
+    // on hydration. Strings have no zone to disagree about.
     if (e.recurring) return e.occurrenceDate === dayKey;
-    const start = parseISO(e.startDate);
-    const end = e.endDate ? parseISO(e.endDate) : start;
-    return anchor >= start && anchor <= end;
+    const end = e.endDate ?? e.startDate;
+    return e.startDate <= dayKey && dayKey <= end;
   });
 
   const allDay = dayEvents.filter((e) => !e.startTime);

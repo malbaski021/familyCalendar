@@ -1,7 +1,7 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import { addDays, format, isSameMonth, isToday, parseISO } from 'date-fns';
+import { addDays, format, isSameMonth, isToday } from 'date-fns';
 import { Link } from '@/i18n/navigation';
 import { EventDialog } from '@/components/calendar/event-dialog';
 import { cn } from '@/lib/utils';
@@ -16,10 +16,16 @@ interface Props {
 }
 
 /**
- * Six-row max month grid. The day-number link jumps to the day view; each
- * event chip is its own link to the event detail. Cells themselves are
- * `<div>`s so we never nest interactive elements.
+ * Six-row max month grid. The day-number link jumps to the day view.
+ *
+ * Each event is a coloured category dot plus its start time — full titles do
+ * not fit a phone-width cell, and a row of dots reads as "how busy is this
+ * day" at a glance. A bare dot with no time means an all-day event. Cells
+ * themselves are `<div>`s so we never nest interactive elements.
  */
+
+/** Rows that fit a cell before the overflow marker takes over. */
+const MAX_VISIBLE_PER_DAY = 4;
 export function MonthView({ range, anchor, events }: Props) {
   const t = useTranslations('calendar');
 
@@ -46,7 +52,7 @@ export function MonthView({ range, anchor, events }: Props) {
           <div
             key={dayKey}
             className={cn(
-              'min-h-[80px] border-r border-b p-1.5 text-xs last:border-r-0',
+              'relative min-h-[120px] border-r border-b p-1.5 text-xs last:border-r-0',
               !inMonth && 'bg-muted/40 text-muted-foreground',
               isToday(day) && 'bg-accent/40',
             )}
@@ -63,29 +69,38 @@ export function MonthView({ range, anchor, events }: Props) {
             >
               {day.getDate()}
             </Link>
-            <div className="mt-1 space-y-0.5">
-              {dayEvents.slice(0, 3).map((e) => {
+            <ul className="mt-1 space-y-0.5">
+              {dayEvents.slice(0, MAX_VISIBLE_PER_DAY).map((e) => {
                 const style = CATEGORY_STYLES[e.category];
                 return (
-                  <EventDialog
-                    key={`${e.id}-${e.occurrenceDate}`}
-                    event={e}
-                    className={cn(
-                      'flex w-full items-center gap-1 truncate rounded-sm border px-1 hover:brightness-95',
-                      style.chipClass,
-                    )}
-                    testId={`calendar-month-event-${e.id}-${e.occurrenceDate}-link`}
-                  >
-                    {e.lockedByOther && <span aria-label="locked">🔒</span>}
-                    <span aria-hidden="true">{style.emoji}</span>
-                    <span className="truncate">{e.title}</span>
-                  </EventDialog>
+                  <li key={`${e.id}-${e.occurrenceDate}`}>
+                    <EventDialog
+                      event={e}
+                      className="hover:bg-accent flex w-full items-center gap-1.5 rounded-sm px-0.5"
+                      testId={`calendar-month-event-${e.id}-${e.occurrenceDate}-link`}
+                    >
+                      <span
+                        className={cn('size-1.5 shrink-0 rounded-full', style.dotClass)}
+                        aria-hidden="true"
+                      />
+                      {e.lockedByOther && <span aria-label="locked">🔒</span>}
+                      {/* No time means all-day — the bare dot carries that. */}
+                      {e.startTime && (
+                        <span className="truncate text-[10px] tabular-nums">{e.startTime}</span>
+                      )}
+                    </EventDialog>
+                  </li>
                 );
               })}
-              {dayEvents.length > 3 && (
-                <div className="text-muted-foreground text-[10px]">+{dayEvents.length - 3}</div>
-              )}
-            </div>
+            </ul>
+            {dayEvents.length > MAX_VISIBLE_PER_DAY && (
+              <span
+                className="text-muted-foreground absolute right-1 bottom-1 text-[10px] font-medium"
+                data-testid={`calendar-month-day-${dayKey}-overflow`}
+              >
+                +{dayEvents.length - MAX_VISIBLE_PER_DAY}
+              </span>
+            )}
           </div>
         );
       })}
@@ -109,14 +124,15 @@ function bucketEventsByDay(events: CalendarEvent[], days: Date[]): Map<string, C
       if (list) list.push(event);
       continue;
     }
-    // Non-recurring: still need to span multi-day events across each day they cover.
-    const start = parseISO(event.startDate);
-    const end = event.endDate ? parseISO(event.endDate) : start;
-    for (const day of days) {
-      if (day >= start && day <= end) {
-        const key = format(day, 'yyyy-MM-dd');
-        const list = map.get(key);
-        if (list) list.push(event);
+    // Non-recurring: still need to span multi-day events across each day they
+    // cover. Compared as `yyyy-MM-dd` strings rather than Date objects — the
+    // `days` come from a server-serialised range while `parseISO` would run
+    // again in the browser's timezone, and the two disagree by the UTC offset.
+    // See the matching comment in `day-view.tsx`.
+    const end = event.endDate ?? event.startDate;
+    for (const key of map.keys()) {
+      if (event.startDate <= key && key <= end) {
+        map.get(key)!.push(event);
       }
     }
   }

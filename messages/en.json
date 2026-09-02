@@ -302,7 +302,9 @@
     "errors": {
       "missingVapid": "Notifications aren't configured for this environment yet.",
       "subscribeFailed": "Couldn't subscribe to push notifications.",
-      "unsubscribeFailed": "Couldn't unsubscribe."
+      "unsubscribeFailed": "Couldn't unsubscribe.",
+      "testFailed": "The push server rejected the send on {failed} device(s). Check the Activity log or the notifications table for the status code.",
+      "noDevices": "No device is subscribed yet. Enable notifications on this device first."
     }
   },
   "audit": {
