@@ -33,8 +33,11 @@ export default async function AppLayout({ children, params }: Props) {
     // space evenly (the month grid does) if the shell has a definite height,
     // and dvh tracks the mobile URL bar where vh does not. Scrolling moves
     // into <main>, so tall pages still scroll while short ones stop guessing.
-    // Bottom padding reserves the fixed dock plus the iOS home indicator.
-    <div className="flex h-dvh flex-col pb-[calc(5rem+env(safe-area-inset-bottom))] md:pb-0">
+    //
+    // Both navs are ordinary flex children, so the column measures them and
+    // <main> gets exactly what is left — no reserved padding to keep in sync
+    // with a nav's real height, and therefore no gap when the two disagree.
+    <div className="flex h-dvh flex-col">
       <TopNav isAdmin={isAdmin} />
       <main className="min-h-0 flex-1 overflow-y-auto">{children}</main>
       <BottomNav isAdmin={isAdmin} />

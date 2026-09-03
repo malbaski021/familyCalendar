@@ -40,13 +40,15 @@ export function BottomNav({ isAdmin = false }: Props) {
     <nav
       aria-label="Primary"
       className={cn(
+        // Not `fixed`. The shell is a full-height flex column whose <main>
+        // owns the scrolling, so the dock stays on screen simply by being the
+        // last child — and the column then measures it, instead of the shell
+        // reserving a guessed height and leaving a sliver of dead space when
+        // the guess ran long.
+        'bg-background grid shrink-0 border-t md:hidden',
         // The home indicator occupies the very bottom of a modern iPhone, so
-        // the row needs padding below it or the icons sit under the gesture
-        // area. `env()` is 0 on hardware without one.
-        'bg-background fixed inset-x-0 bottom-0 z-40 grid border-t md:hidden',
-        // Safe-area inset alone still left the icons feeling pinned to the
-        // edge, so there is a deliberate lift on top of it. Keep this in step
-        // with the shell's reserved padding in `(app)/layout.tsx`.
+        // the row needs padding below it or the icons sit in the gesture area.
+        // The extra 1rem is a deliberate lift; `env()` is 0 without one.
         'pb-[calc(env(safe-area-inset-bottom)+1rem)]',
         gridCols,
       )}
