@@ -31,19 +31,25 @@ export default async function CalendarPage({ params, searchParams }: Props) {
   const title = titleFor(view, anchor);
 
   return (
-    <>
+    // Column layout so the view below the nav receives whatever height is
+    // left, instead of the month grid hardcoding a per-cell minimum and
+    // leaving a gap above the dock.
+    <div className="flex h-full min-h-0 flex-col">
       <CalendarNav view={view} anchor={anchor} title={title} />
       {!family ? (
         <NoFamily locale={locale} />
       ) : (
-        <>
+        // Scrolls here rather than in <main>: the month grid is exactly this
+        // tall and must not scroll, while week view's 24 hour rows are taller
+        // than the viewport and would otherwise be clipped.
+        <div className="min-h-0 flex-1 overflow-y-auto">
           <RealtimeEvents familyId={family.familyId} />
           <Suspense fallback={<CalendarSkeleton />}>
             <CalendarBody view={view} anchor={anchor} range={range} familyId={family.familyId} />
           </Suspense>
-        </>
+        </div>
       )}
-    </>
+    </div>
   );
 }
 

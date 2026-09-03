@@ -34,12 +34,20 @@ export function MonthView({ range, anchor, events }: Props) {
 
   const eventsByDay = bucketEventsByDay(events, days);
 
+  // 4, 5 or 6 weeks depending on the month, so the row count comes from the
+  // data. Each week row is an equal fraction of the height the parent hands
+  // down — no per-cell minimum, no leftover gap above the dock.
+  const weeks = Math.max(1, Math.round(days.length / 7));
+
   return (
-    <div className="grid grid-cols-7 border-b">
+    <div
+      className="grid h-full grid-cols-7 border-b"
+      style={{ gridTemplateRows: `auto repeat(${weeks}, minmax(0, 1fr))` }}
+    >
       {weekdayLabels(range.start).map((label) => (
         <div
           key={label}
-          className="text-muted-foreground border-r border-b px-2 py-2 text-center text-xs font-medium tracking-wide uppercase last:border-r-0"
+          className="bg-muted/70 text-muted-foreground border-r border-b px-2 py-2 text-center text-[11px] font-semibold tracking-wider uppercase last:border-r-0"
         >
           {label}
         </div>
@@ -52,8 +60,11 @@ export function MonthView({ range, anchor, events }: Props) {
           <div
             key={dayKey}
             className={cn(
-              'relative min-h-[120px] border-r border-b p-1.5 text-xs last:border-r-0',
-              !inMonth && 'bg-muted/40 text-muted-foreground',
+              'relative overflow-hidden border-r border-b p-1.5 text-xs last:border-r-0',
+              // Days spilling in from the neighbouring months are context, not
+              // content — pushed well back so the current month reads as the
+              // subject of the grid.
+              !inMonth && 'bg-muted text-muted-foreground/50',
               isToday(day) && 'bg-accent/40',
             )}
             data-testid={`calendar-month-day-${dayKey}-cell`}

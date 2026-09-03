@@ -29,9 +29,14 @@ export default async function AppLayout({ children, params }: Props) {
   const isAdmin = user.profile.role === 'admin';
 
   return (
-    <div className="flex min-h-screen flex-col pb-16 md:pb-0">
+    // `h-dvh` rather than `min-h-screen`: a page can only divide the leftover
+    // space evenly (the month grid does) if the shell has a definite height,
+    // and dvh tracks the mobile URL bar where vh does not. Scrolling moves
+    // into <main>, so tall pages still scroll while short ones stop guessing.
+    // Bottom padding reserves the fixed dock plus the iOS home indicator.
+    <div className="flex h-dvh flex-col pb-[calc(4rem+env(safe-area-inset-bottom))] md:pb-0">
       <TopNav isAdmin={isAdmin} />
-      <main className="flex-1">{children}</main>
+      <main className="min-h-0 flex-1 overflow-y-auto">{children}</main>
       <BottomNav isAdmin={isAdmin} />
     </div>
   );

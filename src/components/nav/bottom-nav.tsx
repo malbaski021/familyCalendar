@@ -40,7 +40,11 @@ export function BottomNav({ isAdmin = false }: Props) {
     <nav
       aria-label="Primary"
       className={cn(
+        // The home indicator occupies the very bottom of a modern iPhone, so
+        // the row needs padding below it or the icons sit under the gesture
+        // area. `env()` is 0 on hardware without one.
         'bg-background fixed inset-x-0 bottom-0 z-40 grid border-t md:hidden',
+        'pb-[env(safe-area-inset-bottom)]',
         gridCols,
       )}
       data-testid="bottom-nav"
@@ -53,7 +57,7 @@ export function BottomNav({ isAdmin = false }: Props) {
             key={item.key}
             href={item.href}
             className={cn(
-              'flex flex-col items-center justify-center gap-1 py-2 text-xs',
+              'flex flex-col items-center justify-center gap-1 py-2.5 text-xs',
               active ? 'text-foreground' : 'text-muted-foreground',
             )}
             aria-current={active ? 'page' : undefined}
