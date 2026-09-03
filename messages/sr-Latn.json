@@ -350,5 +350,40 @@
       "prev": "Prethodna stranica",
       "next": "Sledeća stranica"
     }
+  },
+  "ai": {
+    "heading": "AI predlozi",
+    "thinking": "Gledam ovaj događaj...",
+    "queued": "Još radim — dobićeš notifikaciju kad bude gotovo.",
+    "accept": "Prihvati",
+    "dismiss": "Odbaci",
+    "applied": "Primenjeno",
+    "failed": "Nije moguće primeniti predlog.",
+    "duplicate": {
+      "title": "Izgleda kao događaj koji već imaš.",
+      "open": "Otvori onaj drugi"
+    },
+    "category": {
+      "label": "Predložena kategorija: {category}"
+    },
+    "children": {
+      "label": "Označi još {count} deteta"
+    },
+    "newChild": {
+      "label": "Nije u listi dece: {names}",
+      "add": "Dodaj {name}"
+    },
+    "reminders": {
+      "label": "Predloženi podsetnici",
+      "save": "Sačuvaj podsetnike"
+    },
+    "categories": {
+      "birthday": "Rođendan",
+      "performance": "Priredba",
+      "match": "Utakmica",
+      "school": "Škola",
+      "doctor": "Lekar",
+      "other": "Ostalo"
+    }
   }
 }

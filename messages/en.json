@@ -350,5 +350,40 @@
       "prev": "Previous page",
       "next": "Next page"
     }
+  },
+  "ai": {
+    "heading": "AI suggestions",
+    "thinking": "Looking at this event...",
+    "queued": "Still working — you will get a notification when it is ready.",
+    "accept": "Accept",
+    "dismiss": "Dismiss",
+    "applied": "Applied",
+    "failed": "Couldn't apply that suggestion.",
+    "duplicate": {
+      "title": "This looks like an event you already have.",
+      "open": "Open the other one"
+    },
+    "category": {
+      "label": "Suggested category: {category}"
+    },
+    "children": {
+      "label": "Tag {count} more child(ren)"
+    },
+    "newChild": {
+      "label": "Not in your family list yet: {names}",
+      "add": "Add {name}"
+    },
+    "reminders": {
+      "label": "Suggested reminders",
+      "save": "Save reminders"
+    },
+    "categories": {
+      "birthday": "Birthday",
+      "performance": "Performance",
+      "match": "Match",
+      "school": "School",
+      "doctor": "Doctor",
+      "other": "Other"
+    }
   }
 }

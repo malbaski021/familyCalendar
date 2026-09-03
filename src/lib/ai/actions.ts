@@ -1,13 +1,14 @@
 'use server';
 
 import { getCurrentUser } from '@/lib/auth/get-current-user';
+import { createClient } from '@/lib/supabase/server';
 import { getFamilyContextFor } from '@/lib/family/get-family-context';
 import { logAudit } from '@/lib/audit/log';
 import { loadSuggestionInput } from '@/lib/ai/candidates';
 import { callGroq } from '@/lib/ai/groq-client';
 import { orchestrate } from '@/lib/ai/orchestrate';
 import { enqueueAiTask, processQueuedTask } from '@/lib/ai/queue';
-import type { AiSuggestions } from '@/lib/ai/schemas';
+import { aiSuggestionSchema, type AiSuggestions } from '@/lib/ai/schemas';
 
 // The seam between the app and the AI subsystem.
 //
@@ -19,8 +20,10 @@ import type { AiSuggestions } from '@/lib/ai/schemas';
 
 export type SuggestionsResult =
   | { status: 'ready'; suggestions: AiSuggestions }
-  /** Parked in `ai_queue`; a push arrives when it lands. */
-  | { status: 'queued'; reason: string }
+  /** Parked in `ai_queue`; the client can drive it, and a push arrives when
+   *  it lands. `taskId` is null only if the enqueue itself failed — the save
+   *  still succeeded, so that is a degraded result rather than an error. */
+  | { status: 'queued'; reason: string; taskId: string | null }
   /** Nothing to wait for — no key, or a request the API rejected. */
   | { status: 'unavailable'; reason: string };
 
@@ -69,14 +72,14 @@ export async function requestSuggestionsAction(input: {
   }
 
   if (outcome.status === 'queued') {
-    await enqueueAiTask({
+    const queued = await enqueueAiTask({
       eventId: input.eventId,
       familyId: family.familyId,
       requestedBy: user.authId,
       input: suggestionInput,
       reason: outcome.reason,
     });
-    return { status: 'queued', reason: outcome.reason };
+    return { status: 'queued', reason: outcome.reason, taskId: queued?.id ?? null };
   }
 
   return { status: 'unavailable', reason: outcome.reason };
@@ -97,4 +100,43 @@ export async function processAiTaskAction(input: {
 
   const outcome = await processQueuedTask(input.taskId);
   return { status: outcome.status };
+}
+
+/**
+ * Read back the stored result of a queued task once it has been processed.
+ *
+ * Kept separate from `requestSuggestionsAction` so picking up finished
+ * background work costs nothing: re-requesting would spend another Groq call
+ * on a question already answered, and the free tier's ceiling is tokens.
+ */
+export async function readQueuedSuggestionsAction(input: {
+  taskId: string;
+}): Promise<SuggestionsResult> {
+  const user = await getCurrentUser();
+  if (!user) return { status: 'unavailable', reason: 'not authenticated' };
+
+  const family = await getFamilyContextFor(user.authId);
+  if (!family) return { status: 'unavailable', reason: 'no family' };
+
+  const supabase = await createClient();
+  // RLS on `ai_queue` limits reads to the caller's own family.
+  const { data } = await supabase
+    .from('ai_queue')
+    .select('status, result, error')
+    .eq('id', input.taskId)
+    .maybeSingle();
+
+  if (!data) return { status: 'unavailable', reason: 'task not found' };
+  if (data.status === 'failed') {
+    return { status: 'unavailable', reason: data.error ?? 'processing failed' };
+  }
+  if (data.status !== 'done' || !data.result) {
+    return { status: 'queued', reason: `status ${data.status}`, taskId: input.taskId };
+  }
+
+  const parsed = aiSuggestionSchema.safeParse(data.result);
+  if (!parsed.success) {
+    return { status: 'unavailable', reason: 'stored result did not validate' };
+  }
+  return { status: 'ready', suggestions: parsed.data };
 }

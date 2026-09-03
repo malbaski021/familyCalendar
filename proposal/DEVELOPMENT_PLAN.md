@@ -478,11 +478,11 @@ Unit suite posle: **97 testova u 11/11 fajlova** (−4, obrisani zajedno sa `Sig
 - [x] Agent 2 — Categorization & Tagging + child detection (sa porodičnom listom dece) _(`agents/categorization.ts`; prompt pokriva srpske padeže — „Luki", „Lukin" → „Luka")_
 - [x] Agent 3 — Smart Reminders (timing prema kategoriji) _(`agents/reminders.ts`)_
 - [x] Orchestrator: assembluje rezultate u `user_message` na jeziku korisnika _(`buildSystemPrompt(locale)`)_
-- [ ] UI: inline prikaz predloga (auto-fill kategorije/tag-a, warning za duplikat, predlog reminder-a sa potvrdom)
-- [ ] "New child detected → add to family list?" prompt _(šema već vraća `newChildNames` odvojeno od `childIds`, da AI ne može tiho da izmisli dete)_
+- [x] UI: prikaz predloga (auto-fill kategorije/tag-a, warning za duplikat, predlog reminder-a sa potvrdom) _(`components/ai/suggestions-panel.tsx` na detail stranici; posle kreiranja se ide na događaj, ne na kalendar, jer predlozi imaju smisla samo uz stvar koju opisuju)_
+- [x] "New child detected → add to family list?" prompt _(`addSuggestedChildAction`; šema vraća `newChildNames` odvojeno od `childIds`, pa AI ne može tiho da izmisli dete — ime se upisuje samo na izričit klik)_
 - [x] Sinhroni put: 3s timeout na Groq poziv _(`AI_SYNC_TIMEOUT_MS`; orchestrator trka poziv protiv budžeta, pa i pozivalac koji ignoriše `AbortSignal` ne može da zadrži save)_
 - [x] Ako timeout/fail: task ide u `ai_queue` (status: pending) _(`enqueueAiTask`; payload je samodovoljan — nosi `requestedBy`, `familyId`, `reason` i ceo `input`, jer `ai_queue` nema `user_id` kolonu)_
-- [ ] Supabase Realtime trigger na novi `ai_queue` zapis → procesira u pozadini _(migracija `20260901120000` i `processAiTaskAction` su gotovi; **klijentski subscriber još ne postoji** — dolazi sa UI inkrementom)_
+- [x] Zakačen task se obrađuje u pozadini _(panel dobije `taskId` i sam pozove `processAiTaskAction`, pa pročita rezultat kroz `readQueuedSuggestionsAction` — bez drugog Groq poziva. Atomičan claim čini trku između tabova bezopasnom. **Odstupanje:** ovo je direktno pokretanje umesto Realtime subscribe-a — pouzdanije je za red koji smo upravo napravili, a publication i migracija su tu ako zatreba subscriber za redove iz drugog izvora.)_
 - [x] Status lifecycle: pending → processing → done/failed _(`claimTask` / `processQueuedTask` / `settleFailed`, uz `attempts` i `processed_at`)_
 - [x] Push notifikacija kad queued task završi _(`sendPush` tip `ai_complete`; best-effort — pad push-a ne vraća red u `failed`)_
 - [x] Zaštita od duplog processing-a (status check) _(atomičan `update ... where status='pending'` — od dva trkača tačno jedan dobije red)_
@@ -530,7 +530,27 @@ Testovi posle ovog inkrementa: **135 unit u 14/14 fajlova** + 11 novih integrati
 
 **11 novih integration slučajeva:** granice prozora (mesec i godina), isključivanje samog događaja, skraćivanje vremena, poštovanje capa u prepunom prozoru, izolacija po porodici, i `loadSuggestionInput` koji vraća `null` za tuđ ili nepostojeći događaj.
 
-**Sledeće:** UI za predloge — inline prikaz, auto-fill kategorije/deteta, warning za duplikat, potvrda podsetnika (uz upis u `event_reminders`), „novo dete → dodati u porodicu?", klijentski realtime subscriber, i audit `ai.accepted` / `ai.rejected`.
+### Napredak (2026-09-03) — UI sloj, F11 kompletan
+
+**Gde predlozi žive.** Posle kreiranja događaja ide se na **stranicu događaja**, ne na kalendar, i tamo panel sam traži predloge. `createEventAction` i dalje **ne** zove AI — save vraća čim je red upisan, pa spor ili mrtav Groq kasni samo savet. Drugi razlog za post-save je šema: `ai_queue.event_id` je `NOT NULL`, dakle zakačen task mora da ima događaj kome pripada.
+
+**Panel prikazuje samo ono što je zaista novo.** Kategorija se ne nudi ako se već poklapa sa onim što je korisnik izabrao, a od predložene dece se nude samo oni koji nisu već označeni — ponavljati korisniku njegov sopstveni izbor je šum. Ako ništa nije novo, panel se ne renderuje uopšte.
+
+**Prihvatanje dece dodaje, ne zamenjuje.** AI je video samo naslov, pa nije u poziciji da skloni tag koji je korisnik namerno postavio. Id-ovi se dodatno filtriraju kroz `children` te porodice — predlog ne sme da označi tuđe dete.
+
+**Zakačen task se obrađuje odmah.** Panel dobije `taskId`, pozove `processAiTaskAction`, pa pročita rezultat kroz `readQueuedSuggestionsAction` — **bez drugog Groq poziva**, jer je odgovor već u `ai_queue.result` a plafon free tier-a su tokeni. Atomičan claim čini trku između dva taba bezopasnom.
+
+**Podsetnici:** `event_reminders.minutes_before` ima `check (> 0)`, a AI šema dopušta 0 („u trenutku događaja"), pa se nule i negativne vrednosti odbacuju u akciji umesto da pucaju na Postgresu. Čekiranje je unaprijed uključeno za sve predloge; snima se samo ono što ostane obeleženo.
+
+**Audit:** `ai.accepted` i `ai.rejected` sa `actor_type='user'` — predlog je došao od AI-ja, ali odluka da se primeni nije. Odbijanja se beleže namerno, da predlog koji porodica stalno odbija bude vidljiv.
+
+**Odstupanje od plana:** stavka je bila „Realtime trigger na novi `ai_queue` zapis". Umesto subscribe-a, panel **direktno pokreće** task koji je upravo napravio — pouzdanije je od čekanja realtime događaja o redu koji sami znamo. Publication i migracija ostaju, pa je subscriber trivijalno dodati ako red ikad počne da se puni iz drugog izvora (npr. F17 cron).
+
+**Robusnost otkrivena testom:** panel je pucao uncaught izuzetkom ako server akcija vrati `undefined` ili baci — unutar transition-a to obori celu komponentu. Sad se svodi na toast.
+
+Testovi: **191 unit u 19/19 fajlova** (+15 za panel). Integration nije pisan za `suggestion-actions.ts` — te akcije traže autentifikovanu sesiju koju harness ne može da napravi, isto ograničenje kao kod `deleteFamilyAction`; pokriveno je ponašanje šeme na koje se oslanjaju.
+
+**F11 je kompletan — 16/16 stavki.**
 
 ---
 

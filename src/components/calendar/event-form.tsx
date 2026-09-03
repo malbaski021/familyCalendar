@@ -100,7 +100,10 @@ export function EventForm({ mode, eventId, initial, familyChildren }: Props) {
         // a permanently "Rendering" page even though the save already
         // succeeded. Freshness is handled server-side by `revalidatePath` in
         // the action.
-        router.replace(mode === 'create' ? '/calendar' : `/calendar/${result.data.id}`);
+        // Create lands on the event rather than the calendar: the AI panel
+        // lives there, and suggestions are only useful next to the thing they
+        // describe.
+        router.replace(`/calendar/${result.data.id}`);
       } else {
         setServerError(result.error);
       }

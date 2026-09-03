@@ -8,6 +8,7 @@ import { getFamilyContextFor } from '@/lib/family/get-family-context';
 import { CATEGORY_STYLES } from '@/lib/calendar/categories';
 import { DeleteEventButton } from '@/components/calendar/delete-event-button';
 import { CancelInstanceButton } from '@/components/calendar/cancel-instance-button';
+import { SuggestionsPanel } from '@/components/ai/suggestions-panel';
 import { BackLink } from '@/components/nav/back-link';
 import type { EventCategory } from '@/lib/calendar/query';
 
@@ -135,6 +136,19 @@ export default async function EventDetailPage({ params, searchParams }: Props) {
           )}
         </div>
       </header>
+
+      {/* Suggestions are requested from the client after the event exists —
+          `createEventAction` never waits on Groq, so the save is never slowed
+          by it. Recurring occurrences are skipped: a suggestion applies to the
+          series, and offering it from one occurrence invites changing all the
+          others by accident. */}
+      {!instanceDate && (
+        <SuggestionsPanel
+          eventId={event.id}
+          currentCategory={event.category}
+          currentChildIds={(event.event_children ?? []).map((ec) => ec.child_id)}
+        />
+      )}
 
       <dl className="grid gap-3 text-sm">
         <Row label={t('form.startDate')}>{instanceDate ?? event.start_date}</Row>
