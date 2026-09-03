@@ -34,7 +34,7 @@ export default async function AppLayout({ children, params }: Props) {
     // and dvh tracks the mobile URL bar where vh does not. Scrolling moves
     // into <main>, so tall pages still scroll while short ones stop guessing.
     // Bottom padding reserves the fixed dock plus the iOS home indicator.
-    <div className="flex h-dvh flex-col pb-[calc(4rem+env(safe-area-inset-bottom))] md:pb-0">
+    <div className="flex h-dvh flex-col pb-[calc(5rem+env(safe-area-inset-bottom))] md:pb-0">
       <TopNav isAdmin={isAdmin} />
       <main className="min-h-0 flex-1 overflow-y-auto">{children}</main>
       <BottomNav isAdmin={isAdmin} />

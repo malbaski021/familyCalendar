@@ -44,7 +44,10 @@ export function BottomNav({ isAdmin = false }: Props) {
         // the row needs padding below it or the icons sit under the gesture
         // area. `env()` is 0 on hardware without one.
         'bg-background fixed inset-x-0 bottom-0 z-40 grid border-t md:hidden',
-        'pb-[env(safe-area-inset-bottom)]',
+        // Safe-area inset alone still left the icons feeling pinned to the
+        // edge, so there is a deliberate lift on top of it. Keep this in step
+        // with the shell's reserved padding in `(app)/layout.tsx`.
+        'pb-[calc(env(safe-area-inset-bottom)+1rem)]',
         gridCols,
       )}
       data-testid="bottom-nav"
