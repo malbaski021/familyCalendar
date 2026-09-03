@@ -47,7 +47,11 @@ export function MonthView({ range, anchor, events }: Props) {
       {weekdayLabels(range.start).map((label) => (
         <div
           key={label}
-          className="bg-muted/70 text-muted-foreground border-r border-b px-2 py-2 text-center text-[11px] font-semibold tracking-wider uppercase last:border-r-0"
+          // Dark band with light lettering. It previously used `bg-muted`,
+          // the same fill as the out-of-month cells, so the header did not
+          // read as a header at all. Explicit slate rather than
+          // `bg-foreground`, which inverts to near-white in dark mode.
+          className="border-r border-b border-slate-700 bg-slate-800 px-2 py-2 text-center text-[11px] font-semibold tracking-wider text-slate-50 uppercase last:border-r-0 dark:border-slate-800 dark:bg-slate-950"
         >
           {label}
         </div>
@@ -80,7 +84,12 @@ export function MonthView({ range, anchor, events }: Props) {
             >
               {day.getDate()}
             </Link>
-            <ul className="mt-1 space-y-0.5">
+            {/* Out-of-month cells keep one appearance whether or not they
+                hold events: the category dots are fully saturated, so left
+                alone they made a neighbouring-month day with events stand out
+                more than the current month's own empty days. Fading the whole
+                list keeps the fill identical and the content recessed. */}
+            <ul className={cn('mt-1 space-y-0.5', !inMonth && 'opacity-40')}>
               {dayEvents.slice(0, MAX_VISIBLE_PER_DAY).map((e) => {
                 const style = CATEGORY_STYLES[e.category];
                 return (
@@ -106,7 +115,10 @@ export function MonthView({ range, anchor, events }: Props) {
             </ul>
             {dayEvents.length > MAX_VISIBLE_PER_DAY && (
               <span
-                className="text-muted-foreground absolute right-1 bottom-1 text-[10px] font-medium"
+                className={cn(
+                  'text-muted-foreground absolute right-1 bottom-1 text-[10px] font-medium',
+                  !inMonth && 'opacity-40',
+                )}
                 data-testid={`calendar-month-day-${dayKey}-overflow`}
               >
                 +{dayEvents.length - MAX_VISIBLE_PER_DAY}
