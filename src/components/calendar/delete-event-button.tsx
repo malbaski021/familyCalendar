@@ -3,7 +3,7 @@
 import { useTransition } from 'react';
 import { useTranslations } from 'next-intl';
 import { toast } from 'sonner';
-import { useRouter } from '@/i18n/navigation';
+import { useLocale } from 'next-intl';
 import { Button } from '@/components/ui/button';
 import { deleteEventAction } from '@/lib/calendar/event-actions';
 
@@ -13,20 +13,16 @@ interface Props {
 
 export function DeleteEventButton({ eventId }: Props) {
   const t = useTranslations('events');
-  const router = useRouter();
+  const locale = useLocale();
   const [isPending, startTransition] = useTransition();
 
   function onDelete() {
     if (!window.confirm(t('confirmDelete'))) return;
     startTransition(async () => {
-      const result = await deleteEventAction({ id: eventId });
-      if (result.ok) {
-        toast.success(t('deleted'));
-        router.replace('/calendar');
-        router.refresh();
-      } else {
-        toast.error(result.error);
-      }
+      // On success this never returns — the action redirects server-side, so
+      // there is no client navigation to get stuck.
+      const result = await deleteEventAction({ id: eventId, locale });
+      if (!result.ok) toast.error(result.error);
     });
   }
 

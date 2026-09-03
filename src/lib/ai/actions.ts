@@ -63,7 +63,6 @@ export async function requestSuggestionsAction(input: {
       newData: {
         category: outcome.suggestions.categorization.category,
         child_ids: outcome.suggestions.categorization.childIds,
-        new_child_names: outcome.suggestions.categorization.newChildNames,
         is_duplicate: outcome.suggestions.duplicates.isDuplicate,
         reminder_count: outcome.suggestions.reminders.suggestions.length,
       },

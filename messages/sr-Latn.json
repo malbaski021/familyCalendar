@@ -212,7 +212,14 @@
       "recurrenceWeekly": "Svake nedelje",
       "recurrenceMonthly": "Svakog meseca",
       "recurringEndDate": "Ponavljaj do",
-      "recurringEndDateHint": "Ostavi prazno za seriju bez kraja."
+      "recurringEndDateHint": "Ostavi prazno za seriju bez kraja.",
+      "conflicts": {
+        "title": "Ovo se možda poklapa sa nečim što već postoji u kalendaru",
+        "hint": "Ništa još nije sačuvano. Promeni datum ili vreme, ili ponovo pritisni Sačuvaj da ipak sačuvaš.",
+        "duplicate": "Isto ime",
+        "overlap": "Preklapa se",
+        "saveAnyway": "Ipak sačuvaj"
+      }
     },
     "instance": {
       "editTitle": "Izmeni ovu pojavu",
@@ -369,10 +376,6 @@
     "children": {
       "label": "Označi još {count} deteta"
     },
-    "newChild": {
-      "label": "Nije u listi dece: {names}",
-      "add": "Dodaj {name}"
-    },
     "reminders": {
       "label": "Predloženi podsetnici",
       "save": "Sačuvaj podsetnike"
@@ -384,6 +387,11 @@
       "school": "Škola",
       "doctor": "Lekar",
       "other": "Ostalo"
+    },
+    "note": {
+      "category": "Kategorija postavljena na {category} (AI predlog)",
+      "children": "Označeno: {names} (AI predlog)",
+      "reminders": "Podsetnici: {reminders} (AI predlog)"
     }
   }
 }

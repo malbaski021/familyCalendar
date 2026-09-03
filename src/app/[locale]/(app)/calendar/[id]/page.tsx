@@ -41,6 +41,14 @@ export default async function EventDetailPage({ params, searchParams }: Props) {
 
   if (!event) notFound();
 
+  // The suggestions panel records accepted child tags in the notes by name,
+  // and a suggestion can name a child the event is not tagged with yet.
+  const { data: familyChildren } = await supabase
+    .from('children')
+    .select('id, name')
+    .eq('family_id', family.familyId)
+    .order('name');
+
   const isRecurring = event.recurring_pattern !== null;
   const instanceDate =
     isRecurring && sp.date && /^\d{4}-\d{2}-\d{2}$/.test(sp.date) ? sp.date : null;
@@ -147,6 +155,7 @@ export default async function EventDetailPage({ params, searchParams }: Props) {
           eventId={event.id}
           currentCategory={event.category}
           currentChildIds={(event.event_children ?? []).map((ec) => ec.child_id)}
+          familyChildren={familyChildren ?? []}
         />
       )}
 

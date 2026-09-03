@@ -1,10 +1,13 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
+import { redirect } from '@/i18n/navigation';
 import { createClient as createServerClient } from '@/lib/supabase/server';
 import { getCurrentUser } from '@/lib/auth/get-current-user';
 import { logAudit } from '@/lib/audit/log';
 import { eventInputSchema, type EventInput } from '@/lib/calendar/event-schema';
+import { findConflicts, type EventConflict } from '@/lib/calendar/conflicts';
+import { loadEventsInRange } from '@/lib/calendar/query';
 import type { ActionResult } from '@/lib/family/actions';
 
 async function findFamilyForCurrentUser(): Promise<
@@ -27,6 +30,40 @@ async function findFamilyForCurrentUser(): Promise<
   if (error) return { ok: false, error: error.message };
   if (!data) return { ok: false, error: 'You are not part of a family yet' };
   return { ok: true, familyId: data.family_id, userId: user.authId };
+}
+
+/**
+ * Look for events the given input would duplicate or overlap, before it is
+ * saved. Called from the form on submit; the form shows the result and lets
+ * the user save anyway.
+ *
+ * Candidates come from `loadEventsInRange` rather than a bespoke query so that
+ * recurring series, per-instance overrides and cancelled instances are all
+ * accounted for by the same code the calendar itself renders.
+ */
+export async function checkEventConflictsAction(input: {
+  event: EventInput;
+  /** Set when editing, so the event is not compared against itself. */
+  excludeEventId?: string;
+}): Promise<ActionResult<{ conflicts: EventConflict[] }>> {
+  const parsed = eventInputSchema.safeParse(input.event);
+  // An invalid draft is the form's problem, not a clash — report no conflicts
+  // and let field validation speak.
+  if (!parsed.success) return { ok: true, data: { conflicts: [] } };
+
+  const ctx = await findFamilyForCurrentUser();
+  if (!ctx.ok) return { ok: false, error: ctx.error };
+
+  const values = parsed.data;
+  const span = {
+    start: new Date(`${values.startDate}T00:00:00Z`),
+    end: new Date(`${values.endDate ?? values.startDate}T00:00:00Z`),
+  };
+
+  const existing = await loadEventsInRange(ctx.familyId, span);
+  const conflicts = findConflicts(values, existing, input.excludeEventId);
+
+  return { ok: true, data: { conflicts } };
 }
 
 function toDbPayload(input: EventInput) {
@@ -146,8 +183,18 @@ export async function updateEventAction(input: {
   return { ok: true, data };
 }
 
+/**
+ * Delete an event and send the caller back to the calendar.
+ *
+ * The redirect happens here rather than with `router.replace` for the same
+ * reason as `completeOnboardingAction`: two router updates fired inside one
+ * async transition never settle, leaving the page stuck. It is worse here than
+ * elsewhere — the route the user is standing on has just ceased to exist, so
+ * the `router.refresh()` half was aimed at a 404.
+ */
 export async function deleteEventAction(input: {
   id: string;
+  locale: string;
 }): Promise<ActionResult<{ id: string }>> {
   const ctx = await findFamilyForCurrentUser();
   if (!ctx.ok) return { ok: false, error: ctx.error };
@@ -177,7 +224,11 @@ export async function deleteEventAction(input: {
     oldData: prev ?? null,
   });
 
-  return { ok: true, data: { id: input.id } };
+  revalidatePath('/[locale]/(app)/calendar', 'page');
+
+  // Throws NEXT_REDIRECT; the success path never returns to the caller.
+  redirect({ href: '/calendar', locale: input.locale });
+  throw new Error('unreachable');
 }
 
 /**

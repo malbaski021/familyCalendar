@@ -36,7 +36,7 @@ const INPUT: AiSuggestionInput = {
 function suggestionsFor(category: string): string {
   return JSON.stringify({
     duplicates: { isDuplicate: false, matchEventId: null, confidence: 0.1, reason: 'none' },
-    categorization: { category, confidence: 0.9, childIds: [], newChildNames: [] },
+    categorization: { category, confidence: 0.9, childIds: [] },
     reminders: { suggestions: [{ minutesBefore: 120, label: '2h' }] },
     userMessage: 'Gotovo.',
   });

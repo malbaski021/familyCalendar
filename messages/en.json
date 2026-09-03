@@ -212,7 +212,14 @@
       "recurrenceWeekly": "Every week",
       "recurrenceMonthly": "Every month",
       "recurringEndDate": "Repeat until",
-      "recurringEndDateHint": "Leave empty for an open-ended series."
+      "recurringEndDateHint": "Leave empty for an open-ended series.",
+      "conflicts": {
+        "title": "This may clash with something already in the calendar",
+        "hint": "Nothing has been saved yet. Change the date or time, or press Save again to keep it anyway.",
+        "duplicate": "Same name",
+        "overlap": "Overlaps",
+        "saveAnyway": "Save anyway"
+      }
     },
     "instance": {
       "editTitle": "Edit this occurrence",
@@ -369,10 +376,6 @@
     "children": {
       "label": "Tag {count} more child(ren)"
     },
-    "newChild": {
-      "label": "Not in your family list yet: {names}",
-      "add": "Add {name}"
-    },
     "reminders": {
       "label": "Suggested reminders",
       "save": "Save reminders"
@@ -384,6 +387,11 @@
       "school": "School",
       "doctor": "Doctor",
       "other": "Other"
+    },
+    "note": {
+      "category": "Category set to {category} (AI suggestion)",
+      "children": "Tagged: {names} (AI suggestion)",
+      "reminders": "Reminders: {reminders} (AI suggestion)"
     }
   }
 }

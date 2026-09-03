@@ -46,10 +46,49 @@ function revalidateEvent(eventId: string): void {
   void eventId;
 }
 
+/** Mirrors the Zod limit on the notes field so nothing is written that the
+ *  edit form would then refuse to save. */
+const NOTES_MAX = 2000;
+
+/**
+ * Append a one-line record of an accepted suggestion to the event's notes.
+ *
+ * The category, child tags and reminders each land in their own table, where
+ * only the reminders are invisible on the event itself. Writing the accepted
+ * line into the notes gives the family one readable place that says what was
+ * added and that the AI proposed it.
+ *
+ * The line arrives already translated from the client — these actions have no
+ * locale, and the alternative (a locale parameter plus a server-side
+ * translator) buys nothing when the text is the user's own note either way.
+ * It is still the caller's family's row, guarded by RLS and capped in length.
+ */
+async function appendToNotes(eventId: string, familyId: string, line?: string): Promise<void> {
+  const text = line?.trim();
+  if (!text) return;
+
+  const supabase = await createServerClient();
+  const { data } = await supabase.from('events').select('notes').eq('id', eventId).maybeSingle();
+
+  const existing = data?.notes ?? '';
+  // Accepting the same suggestion twice (a re-mount, a double click) must not
+  // stack duplicate lines.
+  if (existing.includes(text)) return;
+
+  const next = existing.trim() ? `${existing.trimEnd()}\n${text}` : text;
+  // Rather than truncate a family's own notes, leave them alone. The write the
+  // user actually asked for has already succeeded at this point.
+  if (next.length > NOTES_MAX) return;
+
+  await supabase.from('events').update({ notes: next }).eq('id', eventId).eq('family_id', familyId);
+}
+
 /** Accept the suggested category. */
 export async function applyCategoryAction(input: {
   eventId: string;
   category: string;
+  /** Translated line to record in the event's notes. */
+  note?: string;
 }): Promise<ActionResult<null>> {
   const parsed = z.enum(CATEGORY_KEYS).safeParse(input.category);
   if (!parsed.success) return { ok: false, error: 'Unknown category' };
@@ -82,6 +121,7 @@ export async function applyCategoryAction(input: {
     newData: { suggestion: 'category', category: parsed.data },
   });
 
+  await appendToNotes(input.eventId, ctx.familyId, input.note);
   revalidateEvent(input.eventId);
   return { ok: true, data: null };
 }
@@ -94,6 +134,8 @@ export async function applyCategoryAction(input: {
 export async function applyChildrenAction(input: {
   eventId: string;
   childIds: string[];
+  /** Translated line to record in the event's notes. */
+  note?: string;
 }): Promise<ActionResult<null>> {
   const ctx = await requireFamilyEvent(input.eventId);
   if (!ctx.ok) return { ok: false, error: ctx.error };
@@ -130,91 +172,16 @@ export async function applyChildrenAction(input: {
     newData: { suggestion: 'children', child_ids: allowed },
   });
 
+  await appendToNotes(input.eventId, ctx.familyId, input.note);
   revalidateEvent(input.eventId);
   return { ok: true, data: null };
 }
 
-const childNameSchema = z.string().trim().min(1).max(60);
-
-/**
- * Register a name the AI spotted but that the family does not have yet, and
- * tag this event with it. Two steps on purpose: the model reports unknown
- * names separately from ids precisely so it can never invent a child silently.
- */
-export async function addSuggestedChildAction(input: {
-  eventId: string;
-  name: string;
-}): Promise<ActionResult<{ childId: string }>> {
-  const parsed = childNameSchema.safeParse(input.name);
-  if (!parsed.success) return { ok: false, error: 'Invalid name' };
-
-  const ctx = await requireFamilyEvent(input.eventId);
-  if (!ctx.ok) return { ok: false, error: ctx.error };
-
-  const supabase = await createServerClient();
-
-  // Re-adding an existing name should tag, not duplicate.
-  const { data: existing } = await supabase
-    .from('children')
-    .select('id')
-    .eq('family_id', ctx.familyId)
-    .ilike('name', parsed.data)
-    .maybeSingle();
-
-  let childId = existing?.id;
-  if (!childId) {
-    const { data: created, error } = await supabase
-      .from('children')
-      .insert({ family_id: ctx.familyId, name: parsed.data })
-      .select('id')
-      .single();
-    if (error || !created) return { ok: false, error: error?.message ?? 'Failed to add child' };
-    childId = created.id;
-
-    await logAudit({
-      familyId: ctx.familyId,
-      actorType: 'user',
-      actorId: ctx.userId,
-      action: 'child.added',
-      entity: 'children',
-      entityId: childId,
-      newData: { name: parsed.data, via: 'ai-suggestion' },
-    });
-  }
-
-  const { error: tagError } = await supabase
-    .from('event_children')
-    .upsert(
-      { event_id: input.eventId, child_id: childId },
-      { onConflict: 'event_id,child_id', ignoreDuplicates: true },
-    );
-  if (tagError) return { ok: false, error: tagError.message };
-
-  await logAudit({
-    familyId: ctx.familyId,
-    actorType: 'user',
-    actorId: ctx.userId,
-    action: 'ai.accepted',
-    entity: 'children',
-    entityId: childId,
-    newData: { suggestion: 'new-child', name: parsed.data },
-  });
-
-  revalidateEvent(input.eventId);
-  return { ok: true, data: { childId } };
-}
-
-/**
- * Persist the reminders the user ticked. Replaces the event's set so
- * unticking one removes it.
- *
- * `minutes_before` is `check (> 0)` in the schema while the AI schema permits
- * 0 ("at the time of the event"), so zero and negatives are dropped here
- * rather than being sent to Postgres to fail.
- */
 export async function saveRemindersAction(input: {
   eventId: string;
   minutesBefore: number[];
+  /** Translated line to record in the event's notes. */
+  note?: string;
 }): Promise<ActionResult<{ saved: number }>> {
   const ctx = await requireFamilyEvent(input.eventId);
   if (!ctx.ok) return { ok: false, error: ctx.error };
@@ -243,6 +210,7 @@ export async function saveRemindersAction(input: {
     newData: { suggestion: 'reminders', minutes_before: minutes },
   });
 
+  await appendToNotes(input.eventId, ctx.familyId, input.note);
   revalidateEvent(input.eventId);
   return { ok: true, data: { saved: minutes.length } };
 }
@@ -254,7 +222,7 @@ export async function saveRemindersAction(input: {
  */
 export async function dismissSuggestionAction(input: {
   eventId: string;
-  kind: 'duplicate' | 'category' | 'children' | 'new-child' | 'reminders';
+  kind: 'duplicate' | 'category' | 'children' | 'reminders';
 }): Promise<ActionResult<null>> {
   const ctx = await requireFamilyEvent(input.eventId);
   if (!ctx.ok) return { ok: false, error: ctx.error };

@@ -48,10 +48,10 @@ export const duplicateResultSchema = z.object({
 export const categorizationResultSchema = z.object({
   category: z.enum(CATEGORY_KEYS),
   confidence: z.number().min(0).max(1),
-  /** Ids from the family's children list. */
+  /** Ids from the family's children list. Cross-checked against the ids we
+   *  actually sent, which is what stops a hallucinated child reaching the UI —
+   *  the model is not asked for unknown names at all. */
   childIds: z.array(z.string()),
-  /** Names the model spotted that are NOT in the family list yet. */
-  newChildNames: z.array(z.string().max(60)),
 });
 
 export const reminderSuggestionSchema = z.object({

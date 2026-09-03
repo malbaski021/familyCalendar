@@ -10,7 +10,6 @@ vi.mock('@/lib/ai/actions', () => ({
 vi.mock('@/lib/ai/suggestion-actions', () => ({
   applyCategoryAction: vi.fn(),
   applyChildrenAction: vi.fn(),
-  addSuggestedChildAction: vi.fn(),
   saveRemindersAction: vi.fn(),
   dismissSuggestionAction: vi.fn(),
 }));
@@ -41,14 +40,22 @@ import type { AiSuggestions } from '@/lib/ai/schemas';
 function suggestions(overrides: Partial<AiSuggestions> = {}): AiSuggestions {
   return {
     duplicates: { isDuplicate: false, matchEventId: null, confidence: 0.1, reason: 'none' },
-    categorization: { category: 'match', confidence: 0.9, childIds: [], newChildNames: [] },
+    categorization: { category: 'match', confidence: 0.9, childIds: [] },
     reminders: { suggestions: [] },
     userMessage: 'Looks like a football match.',
     ...overrides,
   } as AiSuggestions;
 }
 
-const PROPS = { eventId: 'evt-1', currentCategory: 'other', currentChildIds: [] as string[] };
+const PROPS = {
+  eventId: 'evt-1',
+  currentCategory: 'other',
+  currentChildIds: [] as string[],
+  familyChildren: [
+    { id: 'c-luka', name: 'Luka' },
+    { id: 'c-mila', name: 'Mila' },
+  ],
+};
 
 function ready(s: AiSuggestions) {
   vi.mocked(requestSuggestionsAction).mockResolvedValue({ status: 'ready', suggestions: s });
@@ -145,7 +152,6 @@ describe('SuggestionsPanel — only surfaces what is actually new', () => {
           category: 'other',
           confidence: 0.9,
           childIds: ['c-luka', 'c-mila'],
-          newChildNames: [],
         },
       }),
     );
@@ -154,8 +160,27 @@ describe('SuggestionsPanel — only surfaces what is actually new', () => {
 
     await userEvent.click(await screen.findByTestId('ai-suggestion-children-accept-button'));
     await waitFor(() =>
-      expect(applyChildrenAction).toHaveBeenCalledWith({ eventId: 'evt-1', childIds: ['c-mila'] }),
+      expect(applyChildrenAction).toHaveBeenCalledWith(
+        expect.objectContaining({ eventId: 'evt-1', childIds: ['c-mila'] }),
+      ),
     );
+  });
+
+  it('records the accepted tag in the notes by name, not by id', async () => {
+    ready(
+      suggestions({
+        categorization: { category: 'other', confidence: 0.9, childIds: ['c-mila'] },
+      }),
+    );
+    vi.mocked(applyChildrenAction).mockResolvedValue({ ok: true, data: null });
+    renderWithProviders(<SuggestionsPanel {...PROPS} />);
+
+    await userEvent.click(await screen.findByTestId('ai-suggestion-children-accept-button'));
+
+    await waitFor(() => expect(applyChildrenAction).toHaveBeenCalled());
+    const note = vi.mocked(applyChildrenAction).mock.calls[0][0].note ?? '';
+    expect(note).toContain('Mila');
+    expect(note).not.toContain('c-mila');
   });
 
   it('renders nothing when every suggestion is already satisfied', async () => {
@@ -210,7 +235,9 @@ describe('SuggestionsPanel — applying and rejecting', () => {
     await userEvent.click(await screen.findByTestId('ai-suggestion-category-accept-button'));
 
     await waitFor(() =>
-      expect(applyCategoryAction).toHaveBeenCalledWith({ eventId: 'evt-1', category: 'match' }),
+      expect(applyCategoryAction).toHaveBeenCalledWith(
+        expect.objectContaining({ eventId: 'evt-1', category: 'match' }),
+      ),
     );
     await waitFor(() =>
       expect(screen.queryByTestId('ai-suggestion-category')).not.toBeInTheDocument(),
@@ -249,10 +276,9 @@ describe('SuggestionsPanel — applying and rejecting', () => {
     await userEvent.click(screen.getByTestId('ai-suggestion-reminders-save-button'));
 
     await waitFor(() =>
-      expect(saveRemindersAction).toHaveBeenCalledWith({
-        eventId: 'evt-1',
-        minutesBefore: [1440],
-      }),
+      expect(saveRemindersAction).toHaveBeenCalledWith(
+        expect.objectContaining({ eventId: 'evt-1', minutesBefore: [1440] }),
+      ),
     );
   });
 

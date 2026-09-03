@@ -1,11 +1,12 @@
 'use client';
 
-import { useEffect, useState, useTransition } from 'react';
+import { useEffect, useRef, useState, useTransition } from 'react';
 import { useForm, Controller, type Resolver } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useTranslations } from 'next-intl';
 import { toast } from 'sonner';
-import { useRouter } from '@/i18n/navigation';
+import { AlertTriangleIcon } from 'lucide-react';
+import { Link, useRouter } from '@/i18n/navigation';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -19,7 +20,12 @@ import {
 } from '@/components/ui/form';
 import { CATEGORY_STYLES } from '@/lib/calendar/categories';
 import { eventInputSchema, type EventInput } from '@/lib/calendar/event-schema';
-import { createEventAction, updateEventAction } from '@/lib/calendar/event-actions';
+import {
+  checkEventConflictsAction,
+  createEventAction,
+  updateEventAction,
+} from '@/lib/calendar/event-actions';
+import type { EventConflict } from '@/lib/calendar/conflicts';
 import type { EventCategory } from '@/lib/calendar/query';
 
 interface Child {
@@ -60,7 +66,12 @@ export function EventForm({ mode, eventId, initial, familyChildren }: Props) {
   const tCat = useTranslations('events.categories');
   const router = useRouter();
   const [serverError, setServerError] = useState<string | null>(null);
+  const [conflicts, setConflicts] = useState<EventConflict[]>([]);
   const [isPending, startTransition] = useTransition();
+  // Which exact set of values the user has already been warned about. Editing
+  // the time after a warning must trigger a fresh check rather than sliding
+  // through on the previous acknowledgement.
+  const acknowledgedFor = useRef<string | null>(null);
 
   const form = useForm<EventInput>({
     // Cast bridges a typing mismatch between Zod's refined-schema output
@@ -85,6 +96,21 @@ export function EventForm({ mode, eventId, initial, familyChildren }: Props) {
   function onSubmit(values: EventInput) {
     setServerError(null);
     startTransition(async () => {
+      // Clash check first, so the warning appears while the event is still
+      // unsaved and the user can simply fix the time. Pressing Save a second
+      // time on the same values goes through — the check advises, it does not
+      // block.
+      const fingerprint = JSON.stringify(values);
+      if (acknowledgedFor.current !== fingerprint) {
+        const check = await checkEventConflictsAction({ event: values, excludeEventId: eventId });
+        if (check.ok && check.data.conflicts.length > 0) {
+          setConflicts(check.data.conflicts);
+          acknowledgedFor.current = fingerprint;
+          return;
+        }
+        setConflicts([]);
+      }
+
       const result =
         mode === 'create'
           ? await createEventAction(values)
@@ -391,6 +417,42 @@ export function EventForm({ mode, eventId, initial, familyChildren }: Props) {
           />
         )}
 
+        {conflicts.length > 0 && (
+          <div
+            role="alert"
+            className="grid gap-2 rounded-md border border-amber-300 bg-amber-50 p-3 text-sm dark:border-amber-900 dark:bg-amber-950"
+            data-testid="event-form-conflicts"
+          >
+            <p className="flex items-start gap-2 font-medium">
+              <AlertTriangleIcon className="mt-0.5 size-4 shrink-0" />
+              {t('conflicts.title')}
+            </p>
+            <ul className="grid gap-1">
+              {conflicts.map((c) => (
+                <li key={c.eventId} className="flex flex-wrap items-baseline gap-x-2">
+                  <span className="text-muted-foreground text-xs uppercase">
+                    {t(`conflicts.${c.kind}`)}
+                  </span>
+                  <Link
+                    href={`/calendar/${c.eventId}`}
+                    className="underline"
+                    data-testid={`event-form-conflict-${c.eventId}-link`}
+                  >
+                    {c.title}
+                  </Link>
+                  <span className="text-muted-foreground text-xs">
+                    {c.occurrenceDate}
+                    {c.allDay || !c.startTime
+                      ? ` · ${t('allDay')}`
+                      : ` · ${c.startTime}${c.endTime ? `–${c.endTime}` : ''}`}
+                  </span>
+                </li>
+              ))}
+            </ul>
+            <p className="text-muted-foreground text-xs">{t('conflicts.hint')}</p>
+          </div>
+        )}
+
         {serverError && (
           <p role="alert" className="text-destructive text-sm">
             {serverError}
@@ -408,7 +470,13 @@ export function EventForm({ mode, eventId, initial, familyChildren }: Props) {
             {t('cancel')}
           </Button>
           <Button type="submit" disabled={isPending} data-testid="event-form-submit-button">
-            {isPending ? t('submitting') : mode === 'create' ? t('create') : t('save')}
+            {isPending
+              ? t('submitting')
+              : conflicts.length > 0
+                ? t('conflicts.saveAnyway')
+                : mode === 'create'
+                  ? t('create')
+                  : t('save')}
           </Button>
         </div>
       </form>

@@ -18,7 +18,6 @@ function validResponse(overrides: Record<string, unknown> = {}) {
       category: 'match',
       confidence: 0.9,
       childIds: ['child-luka'],
-      newChildNames: [],
     },
     reminders: {
       suggestions: [{ minutesBefore: 1440, label: 'Day before' }],
@@ -77,7 +76,7 @@ describe('parseSuggestions', () => {
 
   it('rejects an unknown category', () => {
     const raw = validResponse({
-      categorization: { category: 'wedding', confidence: 1, childIds: [], newChildNames: [] },
+      categorization: { category: 'wedding', confidence: 1, childIds: [] },
     });
     expect(parseSuggestions(raw, CONTEXT).ok).toBe(false);
   });
@@ -95,7 +94,6 @@ describe('parseSuggestions', () => {
         category: 'school',
         confidence: 0.8,
         childIds: ['child-luka', 'child-does-not-exist'],
-        newChildNames: [],
       },
     });
     const result = parseSuggestions(raw, CONTEXT);
@@ -147,7 +145,9 @@ describe('parseSuggestions', () => {
     expect(result.data.duplicates.isDuplicate).toBe(false);
   });
 
-  it('keeps newChildNames, which are not id-checked', () => {
+  it('ignores an unknown-child field the model volunteers', () => {
+    // The prompt no longer asks for names outside the family list, but a model
+    // is free to add fields anyway. Extra keys must not reach the UI.
     const raw = validResponse({
       categorization: {
         category: 'match',
@@ -159,6 +159,6 @@ describe('parseSuggestions', () => {
     const result = parseSuggestions(raw, CONTEXT);
     expect(result.ok).toBe(true);
     if (!result.ok) return;
-    expect(result.data.categorization.newChildNames).toEqual(['Stefan']);
+    expect(result.data.categorization).not.toHaveProperty('newChildNames');
   });
 });

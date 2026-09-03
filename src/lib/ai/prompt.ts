@@ -42,7 +42,7 @@ Use exactly this shape:
 
 {
   "duplicates": { "isDuplicate": boolean, "matchEventId": string|null, "confidence": number, "reason": string },
-  "categorization": { "category": string, "confidence": number, "childIds": string[], "newChildNames": string[] },
+  "categorization": { "category": string, "confidence": number, "childIds": string[] },
   "reminders": { "suggestions": [ { "minutesBefore": number, "label": string } ] },
   "userMessage": string
 }

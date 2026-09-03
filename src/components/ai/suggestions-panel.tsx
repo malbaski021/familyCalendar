@@ -13,7 +13,6 @@ import {
   requestSuggestionsAction,
 } from '@/lib/ai/actions';
 import {
-  addSuggestedChildAction,
   applyCategoryAction,
   applyChildrenAction,
   dismissSuggestionAction,
@@ -27,9 +26,12 @@ interface Props {
    *  shown at all — repeating the user's own choice back at them is noise. */
   currentCategory: string;
   currentChildIds: string[];
+  /** The family's children, so an accepted tag can be recorded in the notes by
+   *  name. The suggestion itself only carries ids. */
+  familyChildren: { id: string; name: string }[];
 }
 
-type Section = 'duplicate' | 'category' | 'children' | 'new-child' | 'reminders';
+type Section = 'duplicate' | 'category' | 'children' | 'reminders';
 
 type State =
   | { kind: 'loading' }
@@ -39,7 +41,12 @@ type State =
    *  renders nothing rather than explaining an outage to a family. */
   | { kind: 'hidden' };
 
-export function SuggestionsPanel({ eventId, currentCategory, currentChildIds }: Props) {
+export function SuggestionsPanel({
+  eventId,
+  currentCategory,
+  currentChildIds,
+  familyChildren,
+}: Props) {
   const t = useTranslations('ai');
   const router = useRouter();
   const [state, setState] = useState<State>({ kind: 'loading' });
@@ -136,13 +143,15 @@ export function SuggestionsPanel({ eventId, currentCategory, currentChildIds }: 
   const showDuplicate =
     !dismissed.has('duplicate') && duplicates.isDuplicate && !!duplicates.matchEventId;
   const showCategory = !dismissed.has('category') && categorization.category !== currentCategory;
-  const newChildIds = categorization.childIds.filter((id) => !currentChildIds.includes(id));
-  const showChildren = !dismissed.has('children') && newChildIds.length > 0;
-  const showNewChild = !dismissed.has('new-child') && categorization.newChildNames.length > 0;
+  const untaggedChildIds = categorization.childIds.filter((id) => !currentChildIds.includes(id));
+  const showChildren = !dismissed.has('children') && untaggedChildIds.length > 0;
   const showReminders = !dismissed.has('reminders') && reminders.suggestions.length > 0;
 
+  const namesFor = (ids: string[]) =>
+    ids.map((id) => familyChildren.find((c) => c.id === id)?.name ?? id).join(', ');
+
   // Everything either applied or waved away — no empty shell.
-  if (!showDuplicate && !showCategory && !showChildren && !showNewChild && !showReminders) {
+  if (!showDuplicate && !showCategory && !showChildren && !showReminders) {
     return null;
   }
 
@@ -196,7 +205,15 @@ export function SuggestionsPanel({ eventId, currentCategory, currentChildIds }: 
           testId="ai-suggestion-category"
           onAccept={() =>
             run('category', () =>
-              applyCategoryAction({ eventId, category: categorization.category }),
+              applyCategoryAction({
+                eventId,
+                category: categorization.category,
+                // Recorded in the event's notes so the family can see what was
+                // added and that it came from a suggestion.
+                note: t('note.category', {
+                  category: t(`categories.${categorization.category}`),
+                }),
+              }),
             )
           }
           onDismiss={() => dismiss('category')}
@@ -208,44 +225,22 @@ export function SuggestionsPanel({ eventId, currentCategory, currentChildIds }: 
 
       {showChildren && (
         <SuggestionRow
-          label={t('children.label', { count: newChildIds.length })}
+          label={t('children.label', { count: untaggedChildIds.length })}
           testId="ai-suggestion-children"
           onAccept={() =>
-            run('children', () => applyChildrenAction({ eventId, childIds: newChildIds }))
+            run('children', () =>
+              applyChildrenAction({
+                eventId,
+                childIds: untaggedChildIds,
+                note: t('note.children', { names: namesFor(untaggedChildIds) }),
+              }),
+            )
           }
           onDismiss={() => dismiss('children')}
           disabled={isPending}
           acceptLabel={t('accept')}
           dismissLabel={t('dismiss')}
         />
-      )}
-
-      {showNewChild && (
-        <div className="grid gap-2 text-sm" data-testid="ai-suggestion-new-child">
-          <p>{t('newChild.label', { names: categorization.newChildNames.join(', ') })}</p>
-          <div className="flex flex-wrap gap-2">
-            {categorization.newChildNames.map((name) => (
-              <Button
-                key={name}
-                size="sm"
-                variant="outline"
-                disabled={isPending}
-                onClick={() => run('new-child', () => addSuggestedChildAction({ eventId, name }))}
-                data-testid={`ai-suggestion-new-child-add-${name}-button`}
-              >
-                {t('newChild.add', { name })}
-              </Button>
-            ))}
-            <Button
-              size="sm"
-              variant="ghost"
-              onClick={() => dismiss('new-child')}
-              data-testid="ai-suggestion-new-child-dismiss-button"
-            >
-              {t('dismiss')}
-            </Button>
-          </div>
-        </div>
       )}
 
       {showReminders && (
@@ -284,7 +279,16 @@ export function SuggestionsPanel({ eventId, currentCategory, currentChildIds }: 
               disabled={isPending || checkedReminders.size === 0}
               onClick={() =>
                 run('reminders', () =>
-                  saveRemindersAction({ eventId, minutesBefore: [...checkedReminders] }),
+                  saveRemindersAction({
+                    eventId,
+                    minutesBefore: [...checkedReminders],
+                    note: t('note.reminders', {
+                      reminders: reminders.suggestions
+                        .filter((r) => checkedReminders.has(r.minutesBefore))
+                        .map((r) => r.label)
+                        .join(', '),
+                    }),
+                  }),
                 )
               }
               data-testid="ai-suggestion-reminders-save-button"

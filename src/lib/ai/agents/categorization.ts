@@ -1,9 +1,10 @@
 // Agent 2 — Categorisation & child tagging.
 //
 // The family's children are supplied with their ids so the model can tag
-// directly. Names it spots that are not on the list come back separately, so
-// the UI can offer "add this child to the family?" instead of silently
-// inventing a child.
+// directly. It is deliberately not asked about names outside that list: an
+// unknown name is left untagged rather than offered as a new family member.
+// `parseSuggestions` also drops any id we did not send, so a hallucinated
+// child cannot reach the UI even if the model volunteers one.
 
 export const CATEGORIZATION_AGENT_NAME = 'categorization';
 
@@ -25,10 +26,8 @@ Guidance:
 
 Then decide which of the family's children the event is about:
 - "childIds": ids from the "Family children" list only. Empty array if the
-  event is not about a specific child.
-- "newChildNames": personal names that clearly refer to a child taking part but
-  which are NOT in the family list. Leave empty unless you are confident it is
-  a child's name — do not put coaches, teachers, doctors, places or teams here.
+  event is not about a specific child. Never invent an id, and do not report
+  names that are absent from that list — an unknown name is simply not tagged.
 
 Names may appear in Serbian or English, in any case, and may be inflected
 (e.g. "Luki", "Lukin" all refer to "Luka"). Match them to the listed child.`;

@@ -31,7 +31,6 @@ interface Expectation {
   child: string | null;
   duplicate: boolean;
   /** Names that must surface as "not in the family yet". */
-  newNames?: string[];
 }
 
 interface Case {
@@ -82,7 +81,7 @@ const CASES: Case[] = [
     startTime: '17:00',
     locale: 'sr-Latn',
     candidates: [],
-    expect: { category: 'birthday', child: null, duplicate: false, newNames: ['Stefan'] },
+    expect: { category: 'birthday', child: null, duplicate: false },
   },
   {
     // Serbian declension: "za Luku" is still Luka.
@@ -135,7 +134,7 @@ describe.skipIf(!hasKey)('prompt quality against the real model', () => {
       console.log(
         `\n  ${testCase.name} (${elapsed}ms)` +
           `\n    category=${categorization.category} children=[${categorization.childIds.join(', ')}]` +
-          ` new=[${categorization.newChildNames.join(', ')}] duplicate=${duplicates.isDuplicate}` +
+          ` duplicate=${duplicates.isDuplicate}` +
           `\n    reminders=[${reminders.suggestions.map((r) => r.minutesBefore).join(', ')}]` +
           `\n    message="${userMessage}"`,
       );
@@ -147,10 +146,6 @@ describe.skipIf(!hasKey)('prompt quality against the real model', () => {
         expect(categorization.childIds).toContain(testCase.expect.child);
       } else {
         expect(categorization.childIds).toEqual([]);
-      }
-
-      for (const name of testCase.expect.newNames ?? []) {
-        expect(categorization.newChildNames).toContain(name);
       }
 
       // The synchronous path is only useful if it fits the budget; a model or
